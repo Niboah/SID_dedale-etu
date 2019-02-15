@@ -6,3 +6,5 @@ It allows Master's students to obtain a first-hand experience of some of the nic
  - autonomy, decision and coordination in uncertain and partially observable environments
 
 **Your goal here is "simple", you have to conceive and implement the behaviours of a team of heterogeneous agents that have to explore an unknown environment in order to collect the maximum amount of treasure in a given time frame.** This game is inspired by the famous "Hunt the Wumpus"  of [Gregory Yob](https://en.wikipedia.org/wiki/Gregory_Yob).
+
+For more details, see Dedale's website : https://dedale.gitlab.io/
