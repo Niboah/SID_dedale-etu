@@ -12,7 +12,7 @@ import jade.core.behaviours.TickerBehaviour;
 /**************************************
  * 
  * 
- * 				BEHAVIOUR RandomWalk : Illustrates how an agent can interact and move in the environment
+ * 				BEHAVIOUR RandomWalk : Illustrates how an agent can interact with, and move in, the environment
  * 
  * 
  **************************************/

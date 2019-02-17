@@ -72,12 +72,12 @@
 			<version>139</version>
 		</dependency>
 		
-		<dependency>
+		<!--<dependency>
 			<groupId>org.scala-lang</groupId>
 			<artifactId>scala-library</artifactId>
 			<version>2.11.7</version>
 		</dependency>
- 	 
+ 	 -->
  	 <!-- PlantUml -->
 		 <dependency>
     		<groupId>net.sourceforge.plantuml</groupId>
