@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import eu.su.mas.dedale.mas.agents.behaviours.startMyBehaviours;
+import eu.su.mas.dedale.mas.agent.behaviours.startMyBehaviours;
 import eu.su.mas.dedaleEtu.mas.behaviours.ExploSoloBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import jade.core.behaviours.Behaviour;
@@ -14,9 +14,7 @@ import jade.core.behaviours.Behaviour;
  * It explore the map using a DFS algorithm.
  * It stops when all nodes have been visited
  *  
- * <br/>
- * Note that this last behaviour is hidden, every tanker agent automatically possess it.
- * 
+ *  
  * @author hc
  *
  */
@@ -40,7 +38,20 @@ public class ExploreSoloAgent extends AbstractDedaleAgent {
 		
 
 		List<Behaviour> lb=new ArrayList<Behaviour>();
+		
+		/************************************************
+		 * 
+		 * ADD the behaviours of the Dummy Moving Agent
+		 * 
+		 ************************************************/
+		
 		lb.add(new ExploSoloBehaviour(this,this.myMap));
+		
+		
+		/***
+		 * MANDATORY TO ALLOW YOUR AGENT TO BE DEPLOYED CORRECTLY
+		 */
+		
 		
 		addBehaviour(new startMyBehaviours(this,lb));
 		

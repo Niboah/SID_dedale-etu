@@ -24,7 +24,7 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="libs/dedale/dedale.jar">
 		<attributes>
-			<attribute name="javadoc_location" value="jar:platform:/resource/dedale-etu/libs/dedale/dedale-doc.zip!/dedale-v2/doc"/>
+			<attribute name="javadoc_location" value="jar:platform:/resource/dedale-etu/libs/dedale/dedale-doc.zip!/doc"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="libs/tools/tools.jar">
