@@ -37,6 +37,7 @@ public class DummyMovingAgent extends AbstractDedaleAgent{
 
 		//get the parameters given into the object[]
 		final Object[] args = getArguments();
+		System.out.println("Arg given by the user to "+this.getLocalName()+": "+args[2]);
 		
 		//use them as parameters for your behaviours is you want
 		
