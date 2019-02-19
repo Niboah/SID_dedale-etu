@@ -33,6 +33,5 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="libs/delta/delta-mas.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/dedale-v2"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
