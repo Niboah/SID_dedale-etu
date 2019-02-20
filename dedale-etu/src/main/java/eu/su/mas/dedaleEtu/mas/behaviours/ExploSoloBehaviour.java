@@ -82,7 +82,7 @@ public class ExploSoloBehaviour extends SimpleBehaviour {
 			this.closedNodes.add(myPosition);
 			this.openNodes.remove(myPosition);
 
-			this.myMap.addNode(myPosition);
+			this.myMap.addNode(myPosition,MapAttribute.closed);
 
 			//2) get the surrounding nodes and, if not in closedNodes, add them to open nodes.
 			String nextNode=null;

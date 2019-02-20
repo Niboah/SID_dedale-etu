@@ -21,8 +21,14 @@ import org.graphstream.ui.view.Viewer;
  */
 public class MapRepresentation implements Serializable {
 
+	/**
+	 * A node is open, closed, or agent
+	 * @author hc
+	 *
+	 */
+	
 	public enum MapAttribute {
-		agent,open
+		agent,open,closed
 	}
 
 	private static final long serialVersionUID = -1333959882640838272L;
@@ -51,7 +57,7 @@ public class MapRepresentation implements Serializable {
 	}
 
 	/**
-	 * Associate to a node an attribute in order to identify them by type. 
+	 * Add or replace a node and its attribute 
 	 * @param id
 	 * @param mapAttribute
 	 */
@@ -67,19 +73,19 @@ public class MapRepresentation implements Serializable {
 		n.addAttribute("ui.label",id);
 	}
 
-	/**
-	 * Add the node id if not already existing
-	 * @param id
-	 */
-	public void addNode(String id){
-		Node n=this.g.getNode(id);
-		if(n==null){
-			n=this.g.addNode(id);
-		}else{
-			n.clearAttributes();
-		}
-		n.addAttribute("ui.label",id);
-	}
+//	/**
+//	 * Add the node id if not already existing
+//	 * @param id
+//	 */
+//	public void addNode(String id){
+//		Node n=this.g.getNode(id);
+//		if(n==null){
+//			n=this.g.addNode(id);
+//		}else{
+//			n.clearAttributes();
+//		}
+//		n.addAttribute("ui.label",id);
+//	}
 
    /**
     * Add the edge if not already existing.
