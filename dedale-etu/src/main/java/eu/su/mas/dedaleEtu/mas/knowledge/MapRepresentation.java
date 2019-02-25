@@ -36,13 +36,7 @@ public class MapRepresentation implements Serializable {
 	}
 
 	private static final long serialVersionUID = -1333959882640838272L;
-
-	private Graph g; //data structure
-	private Viewer viewer; //ref to the display
-	private Integer nbEdges;//used to generate the edges ids
-
-	private SerializableSimpleGraph<String, MapAttribute> sg;//used as a temporary dataStructure during migration
-
+	
 	/*********************************
 	 * Parameters for graph rendering
 	 ********************************/
@@ -52,17 +46,20 @@ public class MapRepresentation implements Serializable {
 	private String nodeStyle_agent = "node.open {"+"fill-color: blue;"+"}";
 	private String nodeStyle=defaultNodeStyle+nodeStyle_agent+nodeStyle_open;
 
+	private Graph g; //data structure non serializable
+	private Viewer viewer; //ref to the display,  non serializable
+	private Integer nbEdges;//used to generate the edges ids
+
+	private SerializableSimpleGraph<String, MapAttribute> sg;//used as a temporary dataStructure during migration
+
+	
 
 	public MapRepresentation() {
 		System.setProperty("org.graphstream.ui.renderer","org.graphstream.ui.j2dviewer.J2DGraphRenderer");
 
 		this.g= new SingleGraph("My world vision");
 		this.g.setAttribute("ui.stylesheet",nodeStyle);
-		this.viewer =new Viewer(this.g, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
-		viewer.enableAutoLayout();
-		
-		viewer.setCloseFramePolicy(Viewer.CloseFramePolicy.CLOSE_VIEWER);
-		viewer.addDefaultView(true);
+		openGui();
 		
 		//this.viewer = this.g.display();
 
@@ -140,32 +137,21 @@ public class MapRepresentation implements Serializable {
 			sg.addEdge(e.getId(), sn.getId(), tn.getId());
 		}
 
-		//once the graph is saved, clear non serializable components
-		//TODO isolate the GUI
-		if (this.viewer!=null){
-			try{
-				this.viewer.close();
-			}catch(NullPointerException e){
-				System.err.println("Bug graphstream viewer.close() work-around - https://github.com/graphstream/gs-core/issues/150");
-			}
-			this.viewer=null;
-		}
-		this.g=null;
+		closeGui();
 
+		this.g=null;
+		
 	}
 
 	/**
 	 * After migration we load the serialized data and recreate the non serializable components (Gui,..)
 	 */
 	public void loadSavedData(){
+		
 		this.g= new SingleGraph("My world vision");
 		this.g.setAttribute("ui.stylesheet",nodeStyle);
-		//this.viewer = this.g.display();
-		this.viewer =new Viewer(this.g, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
-		viewer.enableAutoLayout();
-		viewer.setCloseFramePolicy(Viewer.CloseFramePolicy.CLOSE_VIEWER);
-		viewer.addDefaultView(true);
-		//TODO isolate the GUI
+		
+		openGui();
 		
 		Integer nbEd=0;
 		for (SerializableNode<String, MapAttribute> n: this.sg.getAllNodes()){
@@ -176,5 +162,30 @@ public class MapRepresentation implements Serializable {
 			}
 		}
 		System.out.println("Loading done");
+	}
+
+	/**
+	 * Method called before migration to kill all non serializable graphStream components
+	 */
+	private void closeGui() {
+		//once the graph is saved, clear non serializable components
+		if (this.viewer!=null){
+			try{
+				this.viewer.close();
+			}catch(NullPointerException e){
+				System.err.println("Bug graphstream viewer.close() work-around - https://github.com/graphstream/gs-core/issues/150");
+			}
+			this.viewer=null;
+		}
+	}
+
+	/**
+	 * Method called after a migration to reopen GUI components
+	 */
+	private void openGui() {
+		this.viewer =new Viewer(this.g, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+		viewer.enableAutoLayout();
+		viewer.setCloseFramePolicy(Viewer.CloseFramePolicy.CLOSE_VIEWER);
+		viewer.addDefaultView(true);
 	}
 }
