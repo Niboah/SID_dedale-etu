@@ -10,6 +10,7 @@ import java.util.Set;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.ExploreSoloAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import jade.core.behaviours.Behaviour;
