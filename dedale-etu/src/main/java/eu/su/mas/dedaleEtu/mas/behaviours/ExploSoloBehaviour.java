@@ -117,6 +117,50 @@ public class ExploSoloBehaviour extends SimpleBehaviour {
 					//chose one, compute the path and take the first step.
 					nextNode=this.myMap.getShortestPath(myPosition, this.openNodes.get(0)).get(0);
 				}
+				
+				
+				
+				/***************************************************
+				** 		ADDING the API CALL to illustrate their use **
+				*****************************************************/
+
+				//list of observations associated to the currentPosition
+				List<Couple<Observation,Integer>> lObservations= lobs.get(0).getRight();
+
+				//example related to the use of the backpack for the treasure hunt
+				Boolean b=false;
+				for(Couple<Observation,Integer> o:lObservations){
+					switch (o.getLeft()) {
+					case DIAMOND:case GOLD:
+
+						System.out.println(this.myAgent.getLocalName()+" - My treasure type is : "+((AbstractDedaleAgent) this.myAgent).getMyTreasureType());
+						System.out.println(this.myAgent.getLocalName()+" - My current backpack capacity is:"+ ((AbstractDedaleAgent) this.myAgent).getBackPackFreeSpace());
+						System.out.println(this.myAgent.getLocalName()+" - My expertise is: "+((AbstractDedaleAgent) this.myAgent).getMyExpertise());
+						System.out.println(this.myAgent.getLocalName()+" - I try to open the safe: "+((AbstractDedaleAgent) this.myAgent).openLock(Observation.GOLD));
+						System.out.println(this.myAgent.getLocalName()+" - Value of the treasure on the current position: "+o.getLeft() +": "+ o.getRight());
+						System.out.println(this.myAgent.getLocalName()+" - The agent grabbed : "+((AbstractDedaleAgent) this.myAgent).pick());
+						System.out.println(this.myAgent.getLocalName()+" - the remaining backpack capacity is: "+ ((AbstractDedaleAgent) this.myAgent).getBackPackFreeSpace());
+						b=true;
+						break;
+					default:
+						break;
+					}
+				}
+
+				//If the agent picked (part of) the treasure
+				if (b){
+					List<Couple<String,List<Couple<Observation,Integer>>>> lobs2=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
+					System.out.println(this.myAgent.getLocalName()+" - State of the observations after picking "+lobs2);
+				}
+				//Trying to store everything in the tanker
+				System.out.println(this.myAgent.getLocalName()+" - My current backpack capacity is:"+ ((AbstractDedaleAgent)this.myAgent).getBackPackFreeSpace());
+				System.out.println(this.myAgent.getLocalName()+" - The agent tries to transfer is load into the Silo (if reachable); succes ? : "+((AbstractDedaleAgent)this.myAgent).emptyMyBackPack("Silo"));
+				System.out.println(this.myAgent.getLocalName()+" - My current backpack capacity is:"+ ((AbstractDedaleAgent)this.myAgent).getBackPackFreeSpace());
+
+
+				/************************************************
+				 * 				END API CALL ILUSTRATION
+				 *************************************************/
 				((AbstractDedaleAgent)this.myAgent).moveTo(nextNode);
 			}
 
