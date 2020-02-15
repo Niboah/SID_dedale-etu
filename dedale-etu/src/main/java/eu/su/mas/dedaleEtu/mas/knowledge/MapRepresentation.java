@@ -11,11 +11,12 @@ import org.graphstream.graph.EdgeRejectedException;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.SingleGraph;
+import org.graphstream.ui.fx_viewer.FxViewer;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.Viewer.CloseFramePolicy;
 
 import dataStructures.serializableGraph.*;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
+
 /**
  * This simple topology representation only deals with the graph, not its content.</br>
  * The knowledge representation is not well written (at all), it is just given as a minimal example.</br>
@@ -54,8 +55,8 @@ public class MapRepresentation implements Serializable {
 
 
 	public MapRepresentation() {
-		System.setProperty("org.graphstream.ui.renderer","org.graphstream.ui.j2dviewer.J2DGraphRenderer");
-
+		//System.setProperty("org.graphstream.ui.renderer","org.graphstream.ui.j2dviewer.J2DGraphRenderer");
+		System.setProperty("org.graphstream.ui", "javafx");
 		this.g= new SingleGraph("My world vision");
 		this.g.setAttribute("ui.stylesheet",nodeStyle);
 		
@@ -79,8 +80,8 @@ public class MapRepresentation implements Serializable {
 			n=this.g.getNode(id);
 		}
 		n.clearAttributes();
-		n.addAttribute("ui.class", mapAttribute.toString());
-		n.addAttribute("ui.label",id);
+		n.setAttribute("ui.class", mapAttribute.toString());
+		n.setAttribute("ui.label",id);
 	}
 
 	/**
@@ -128,10 +129,14 @@ public class MapRepresentation implements Serializable {
 	 */
 	public void prepareMigration(){
 		this.sg= new SerializableSimpleGraph<String,MapAttribute>();
-		for(Node n: this.g.getEachNode()){
-			sg.addNode(n.getId(),n.getAttribute("ui.class"));
+		Iterator<Node> iter=this.g.iterator();
+		while(iter.hasNext()){
+			Node n=iter.next();
+			sg.addNode(n.getId(),(MapAttribute)n.getAttribute("ui.class"));
 		}
-		for (Edge e:this.g.getEdgeSet()){
+		Iterator<Edge> iterE=this.g.edges().iterator();
+		while (iterE.hasNext()){
+			Edge e=iterE.next();
 			Node sn=e.getSourceNode();
 			Node tn=e.getTargetNode();
 			sg.addEdge(e.getId(), sn.getId(), tn.getId());
@@ -155,7 +160,7 @@ public class MapRepresentation implements Serializable {
 		
 		Integer nbEd=0;
 		for (SerializableNode<String, MapAttribute> n: this.sg.getAllNodes()){
-			this.g.addNode(n.getNodeId()).addAttribute("ui.class", n.getNodeContent().toString());
+			this.g.addNode(n.getNodeId()).setAttribute("ui.class", n.getNodeContent().toString());
 			for(String s:this.sg.getEdges(n.getNodeId())){
 				this.g.addEdge(nbEd.toString(),n.getNodeId(),s);
 				nbEd++;
@@ -183,9 +188,10 @@ public class MapRepresentation implements Serializable {
 	 * Method called after a migration to reopen GUI components
 	 */
 	private void openGui() {
-		this.viewer =new Viewer(this.g, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+		this.viewer =new FxViewer(this.g, FxViewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);//GRAPH_IN_GUI_THREAD);
 		viewer.enableAutoLayout();
-		viewer.setCloseFramePolicy(Viewer.CloseFramePolicy.CLOSE_VIEWER);
+		viewer.setCloseFramePolicy(FxViewer.CloseFramePolicy.CLOSE_VIEWER);
 		viewer.addDefaultView(true);
+		g.display();
 	}
 }

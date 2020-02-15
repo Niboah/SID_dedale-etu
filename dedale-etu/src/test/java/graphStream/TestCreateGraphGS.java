@@ -12,7 +12,7 @@ import org.graphstream.ui.spriteManager.SpriteManager;
 import org.graphstream.ui.view.Viewer;
 
 /**
- * This class is an example allowing you to quickly obtain a graphical representation of a given graph using the graphStream library 
+ * This class is an example allowing you to quickly obtain a graphical representation of a given graph using the graphStream library. 
  * It can be useful in order to follow an agent's view of its knowledge of the world
  * @author hc
  *
@@ -22,20 +22,23 @@ public class TestCreateGraphGS {
 	public static void main(String[] args) {
 		
 		//color of a node according to its type
-		String defaultNodeStyle= "node {"+"fill-color: black;"+" size-mode:fit;text-alignment:under; text-size:14;text-color:white;text-background-mode:rounded-box;text-background-color:black;}";
-		String nodeStyle_wumpus= "node.wumpus {"+"fill-color: red;"+"}";
-		String nodeStyle_agent= "node.agent {"+"fill-color: forestgreen;"+"}";
-		String nodeStyle_treasure="node.treasure {"+"fill-color: yellow;"+"}";
-		String nodeStyle_EntryExit="node.exit {"+"fill-color: green;"+"}";
-		
+		//String defaultNodeStyle= "node {"+"text-size:20;fill-color: black;"+" size-mode:fit;text-alignment:right;text-color:white;text-background-mode:rounded-box;text-background-color:black;}";
+		String defaultNodeStyle= "node {"+"fill-color: white;"+"text-size:20;size-mode:fit;text-alignment:center;text-color:black;text-background-mode:rounded-box;text-background-color:white;}";
+		//String nodeStyle_wumpus= "node.wumpus {"+"fill-color: red;text-background-color:red;"+"}";
+		String nodeStyle_wumpus= "node.wumpus {"+"text-alignment:under;size:10;text-background-color:white;fill-color: red;"+"}";
+		//String nodeStyle_agent= "node.agent {"+"text-size:40;fill-color: forestgreen;text-alignment:center;text-background-color:forestgreen;"+"}";
+		String nodeStyle_agent= "node.agent {"+"text-alignment:under;size:10;text-background-color:white;fill-color:blue;"+"}";
+		//String nodeStyle_treasure="node.treasure {"+"size-mode:normal;size:20;shape:cross;fill-color: yellow;"+"}";
+		String nodeStyle_treasure= "node.treasure {"+"size-mode:normal;fill-color: yellow;shape:diamond;size:35;text-background-color:yellow;"+"}";
+		String nodeStyle_EntryExit="node.exit {"+"text-alignment:under;size:10;text-background-color:white;fill-color: green;"+"}";
 		String nodeStyle=defaultNodeStyle+nodeStyle_wumpus+nodeStyle_agent+nodeStyle_treasure+nodeStyle_EntryExit;
-		System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
-
-		Graph graph = new SingleGraph("Illustrative example");//generateGraph(true, 30);
+		//System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
+		System.setProperty("org.graphstream.ui", "javafx");
 		
-		Iterator<Node> iter=graph.getNodeIterator();
+		Graph graph = new SingleGraph("Illustrative example");
 		
-		//SingleGraph graph = new SingleGraph("Tutorial 1");
+		Iterator<Node> iter=graph.iterator();
+		
 		graph.setAttribute("ui.stylesheet",nodeStyle);
 		
 		Viewer viewer = graph.display();
@@ -44,7 +47,7 @@ public class TestCreateGraphGS {
 		// the nodes can be added dynamically.
 		graph.addNode("A");
 		Node n= graph.getNode("A");
-		n.addAttribute("ui.label", "Agent J");	
+		n.setAttribute("ui.label", "Agent Nemar");	
 		n.setAttribute("ui.class", "agent");
 		
 		Object o=n.getAttribute("ui.label");
@@ -52,17 +55,17 @@ public class TestCreateGraphGS {
 		
 		graph.addNode("B");
 		n= graph.getNode("B");
-		n.addAttribute("ui.label", "treasure");	
+		n.setAttribute("ui.label", "treasure");	
 		n.setAttribute("ui.class", "treasure");
 		
 		graph.addNode("C");	
 		n= graph.getNode("C");
-		n.addAttribute("ui.label", "wumpus");	
+		n.setAttribute("ui.label", "wumpus");	
 		n.setAttribute("ui.class", "wumpus");
 		
 		graph.addNode("D");
 		n= graph.getNode("D");
-		n.addAttribute("ui.label", "The exit");	
+		n.setAttribute("ui.label", "The exit");	
 		n.setAttribute("ui.class", "exit");
 		
 		graph.addNode("E");
