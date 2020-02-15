@@ -10,10 +10,11 @@ import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import jade.core.behaviours.Behaviour;
 
 /**
+ * <pre>
  * ExploreSolo agent. 
  * It explore the map using a DFS algorithm.
- * It stops when all nodes have been visited
- *  
+ * It stops when all nodes have been visited.
+ *  </pre>
  *  
  * @author hc
  *

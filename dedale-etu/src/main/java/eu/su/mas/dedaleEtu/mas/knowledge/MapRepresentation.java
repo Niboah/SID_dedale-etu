@@ -18,10 +18,11 @@ import org.graphstream.ui.view.Viewer.CloseFramePolicy;
 import dataStructures.serializableGraph.*;
 
 /**
- * This simple topology representation only deals with the graph, not its content.</br>
- * The knowledge representation is not well written (at all), it is just given as a minimal example.</br>
+ * <pre>
+ * This simple topology representation only deals with the graph, not its content.
+ * The knowledge representation is not well written (at all), it is just given as a minimal example.
  * The viewer methods are not independent of the data structure, and the dijkstra is recomputed every-time.
- * 
+ * </pre>
  * @author hc
  */
 public class MapRepresentation implements Serializable {
@@ -69,8 +70,8 @@ public class MapRepresentation implements Serializable {
 
 	/**
 	 * Add or replace a node and its attribute 
-	 * @param id
-	 * @param mapAttribute
+	 * @param id Id of the node
+	 * @param mapAttribute associated state of the node
 	 */
 	public void addNode(String id,MapAttribute mapAttribute){
 		Node n;
@@ -86,8 +87,8 @@ public class MapRepresentation implements Serializable {
 
 	/**
 	 * Add the edge if not already existing.
-	 * @param idNode1
-	 * @param idNode2
+	 * @param idNode1 one side of the edge
+	 * @param idNode2 the other side of the edge
 	 */
 	public void addEdge(String idNode1,String idNode2){
 		try {
