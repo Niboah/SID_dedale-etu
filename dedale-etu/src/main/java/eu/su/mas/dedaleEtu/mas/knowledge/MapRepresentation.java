@@ -189,7 +189,7 @@ public class MapRepresentation implements Serializable {
 	 * Method called after a migration to reopen GUI components
 	 */
 	private void openGui() {
-		this.viewer =new FxViewer(this.g, FxViewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);//GRAPH_IN_GUI_THREAD);
+		this.viewer =new FxViewer(this.g, FxViewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);////GRAPH_IN_GUI_THREAD);
 		viewer.enableAutoLayout();
 		viewer.setCloseFramePolicy(FxViewer.CloseFramePolicy.CLOSE_VIEWER);
 		viewer.addDefaultView(true);
