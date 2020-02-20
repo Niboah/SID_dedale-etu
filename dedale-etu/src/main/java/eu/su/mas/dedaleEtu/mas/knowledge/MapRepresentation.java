@@ -16,6 +16,7 @@ import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.Viewer.CloseFramePolicy;
 
 import dataStructures.serializableGraph.*;
+import javafx.application.Platform;
 
 /**
  * <pre>
@@ -38,7 +39,7 @@ public class MapRepresentation implements Serializable {
 	}
 
 	private static final long serialVersionUID = -1333959882640838272L;
-	
+
 	/*********************************
 	 * Parameters for graph rendering
 	 ********************************/
@@ -60,9 +61,10 @@ public class MapRepresentation implements Serializable {
 		System.setProperty("org.graphstream.ui", "javafx");
 		this.g= new SingleGraph("My world vision");
 		this.g.setAttribute("ui.stylesheet",nodeStyle);
-		
-		openGui();
-		
+
+		Platform.runLater(() -> {
+			openGui();
+		});
 		//this.viewer = this.g.display();
 
 		this.nbEdges=0;
@@ -146,19 +148,19 @@ public class MapRepresentation implements Serializable {
 		closeGui();
 
 		this.g=null;
-		
+
 	}
 
 	/**
 	 * After migration we load the serialized data and recreate the non serializable components (Gui,..)
 	 */
 	public void loadSavedData(){
-		
+
 		this.g= new SingleGraph("My world vision");
 		this.g.setAttribute("ui.stylesheet",nodeStyle);
-		
+
 		openGui();
-		
+
 		Integer nbEd=0;
 		for (SerializableNode<String, MapAttribute> n: this.sg.getAllNodes()){
 			this.g.addNode(n.getNodeId()).setAttribute("ui.class", n.getNodeContent().toString());
