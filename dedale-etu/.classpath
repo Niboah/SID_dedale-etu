@@ -33,6 +33,10 @@
 			<attribute name="javadoc_location" value="jar:platform:/resource/dedale-etu/libs/tools/tools-doc.zip!/tools/doc"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="libs/delta/delta-mas.jar"/>
+	<classpathentry kind="lib" path="libs/delta/delta-mas.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/dedale-etu/libs/delta/delta-mas.jar!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
