@@ -8,6 +8,7 @@ import org.graphstream.algorithm.generator.GridGenerator;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.SingleGraph;
+import org.graphstream.ui.fx_viewer.FxViewer;
 import org.graphstream.ui.spriteManager.SpriteManager;
 import org.graphstream.ui.view.Viewer;
 
@@ -32,24 +33,29 @@ public class TestCreateGraphGS {
 		String nodeStyle_treasure= "node.treasure {"+"size-mode:normal;fill-color: yellow;shape:diamond;size:35;text-background-color:yellow;"+"}";
 		String nodeStyle_EntryExit="node.exit {"+"text-alignment:under;size:10;text-background-color:white;fill-color: green;"+"}";
 		String nodeStyle=defaultNodeStyle+nodeStyle_wumpus+nodeStyle_agent+nodeStyle_treasure+nodeStyle_EntryExit;
-		//System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
+				
+		//System.setProperty("org.graphstream.ui", "swing");//working with graph.display but not with new FxViewer
 		System.setProperty("org.graphstream.ui", "javafx");
+		System.setProperty("org.graphstream.debug","true");//required on some systems otherwise it generate a bug. See FxVewer.class line 200
 		
 		Graph graph = new SingleGraph("Illustrative example");
-		
+	
 		Iterator<Node> iter=graph.iterator();
 		
 		graph.setAttribute("ui.stylesheet",nodeStyle);
 		
 		Viewer viewer = graph.display();
+		
 		SpriteManager sman = new SpriteManager(graph);
 
 		// the nodes can be added dynamically.
 		graph.addNode("A");
 		Node n= graph.getNode("A");
-		n.setAttribute("ui.label", "Agent Nemar");	
-		n.setAttribute("ui.class", "agent");
+		n.setAttribute("ui.label", "Agent Nemar");	//ui.label is the label used for display. You can create your own labels but they will not be displayed
+		n.setAttribute("ui.class", "agent");// used to define the node rendering (color/form/..)
 		
+		//The content of a node can be accessed by calling its attribute(s). 
+		//You
 		Object o=n.getAttribute("ui.label");
 		System.out.println("object: "+o.toString());
 		

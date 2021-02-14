@@ -42,7 +42,7 @@ public class ExploreSoloAgent extends AbstractDedaleAgent {
 		
 		/************************************************
 		 * 
-		 * ADD the behaviours of the Dummy Moving Agent
+		 * ADD the initial behaviours of the Agent here
 		 * 
 		 ************************************************/
 		
