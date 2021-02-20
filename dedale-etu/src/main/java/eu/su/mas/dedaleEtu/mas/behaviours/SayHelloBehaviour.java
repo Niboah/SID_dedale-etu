@@ -11,7 +11,7 @@ import jade.lang.acl.ACLMessage;
  * @author hc
  *
  */
-public class SayHello extends TickerBehaviour{
+public class SayHelloBehaviour extends TickerBehaviour{
 
 	/**
 	 * 
@@ -23,7 +23,7 @@ public class SayHello extends TickerBehaviour{
 	 * @param myagent the agent who posses the behaviour
 	 *  
 	 */
-	public SayHello (final Agent myagent) {
+	public SayHelloBehaviour (final Agent myagent) {
 		super(myagent, 3000);
 		//super(myagent);
 	}
@@ -43,6 +43,7 @@ public class SayHello extends TickerBehaviour{
 
 			msg.addReceiver(new AID("Collect1",AID.ISLOCALNAME));
 			msg.addReceiver(new AID("Collect2",AID.ISLOCALNAME));
+			
 
 			//Mandatory to use this method (it takes into account the environment to decide if someone is reachable or not)
 			((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
