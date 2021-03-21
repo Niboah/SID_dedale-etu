@@ -19,6 +19,9 @@ import jade.core.behaviours.Behaviour;
  *  - The shortestPath computation is not optimized
  *  - Agents do not coordinate themselves on the node(s) to visit, thus progressively creating a single file. It's bad.
  *  - The agent sends all its map, periodically, forever. Its bad x3.
+ *   - You should give him the list of agents'name to send its map to in parameter when creating the agent.
+ *   Object [] entityParameters={"Name1","Name2};
+ *   ag=createNewDedaleAgent(c, agentName, ExploreCoopAgent.class.getName(), entityParameters);
  *  
  * It stops when all nodes have been visited.
  * 

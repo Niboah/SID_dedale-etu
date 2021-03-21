@@ -30,8 +30,10 @@ public class TestCreateGraphGS {
 		//String nodeStyle_agent= "node.agent {"+"text-size:40;fill-color: forestgreen;text-alignment:center;text-background-color:forestgreen;"+"}";
 		String nodeStyle_agent= "node.agent {"+"text-alignment:under;size:10;text-background-color:white;fill-color:blue;"+"}";
 		//String nodeStyle_treasure="node.treasure {"+"size-mode:normal;size:20;shape:cross;fill-color: yellow;"+"}";
-		String nodeStyle_treasure= "node.treasure {"+"size-mode:normal;fill-color: yellow;shape:diamond;size:35;text-background-color:yellow;"+"}";
-		String nodeStyle_EntryExit="node.exit {"+"text-alignment:under;size:10;text-background-color:white;fill-color: green;"+"}";
+		String nodeStyle_treasure= "node.treasure {"+"size-mode:normal;fill-color: yellow;shape:cross;size:40;text-background-color:yellow;"+"}";
+		//String nodeStyle_EntryExit="node.exit {"+"text-alignment:under;size:10;text-background-color:white;fill-color: green;"+"}";
+		String nodeStyle_EntryExit="node.exit {size-mode:normal;text-alignment:under;fill-mode: image-scaled;size:40; fill-image: url('src/test/java/graphStream/deathStar1.png');}";
+		//
 		String nodeStyle=defaultNodeStyle+nodeStyle_wumpus+nodeStyle_agent+nodeStyle_treasure+nodeStyle_EntryExit;
 				
 		//System.setProperty("org.graphstream.ui", "swing");//working with graph.display but not with new FxViewer
@@ -71,7 +73,7 @@ public class TestCreateGraphGS {
 		
 		graph.addNode("D");
 		n= graph.getNode("D");
-		n.setAttribute("ui.label", "The exit");	
+		n.setAttribute("ui.label", "Small moon");	
 		n.setAttribute("ui.class", "exit");
 		
 		graph.addNode("E");
