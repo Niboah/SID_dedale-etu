@@ -86,7 +86,7 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 			 * Just added here to let you see what the agent is doing, otherwise he will be too quick
 			 */
 			try {
-				this.myAgent.doWait(250);
+				this.myAgent.doWait(1000);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

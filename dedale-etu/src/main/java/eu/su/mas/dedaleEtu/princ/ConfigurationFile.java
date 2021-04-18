@@ -21,14 +21,17 @@ public final class ConfigurationFile {
 	 * 1) Network and platform parameters
 	 * 
 	 ***********************************/
-
+	
+	//Distributed or not, and is the current computer in charge of the main-container
 	public static boolean PLATFORMisDISTRIBUTED= false;
 	public static boolean COMPUTERisMAIN= true;
 
+	//network configuration
 	public static String PLATFORM_HOSTNAME="127.0.0.1";
 	public static String PLATFORM_ID="Ithaq";
 	public static Integer PLATFORM_PORT=8887;
 	
+	//List of containers to be created on the current computer
 	public static String LOCAL_CONTAINER_NAME=PLATFORM_ID+"_"+"container1";
 	public static String LOCAL_CONTAINER2_NAME=PLATFORM_ID+"_"+"container2";
 	public static String LOCAL_CONTAINER3_NAME=PLATFORM_ID+"_"+"container3";
@@ -74,8 +77,8 @@ public final class ConfigurationFile {
 	
 	//public static String INSTANCE_TOPOLOGY="resources/topology/map2020-topologyExam1-graph.dgs";
 	//public static String INSTANCE_TOPOLOGY="resources/topology/HouatTopology";
-	public static String INSTANCE_TOPOLOGY="resources/topology/map2018-topology-ica";
-	//public static String INSTANCE_TOPOLOGY="resources/topology/map2020-topologyExam1-tree.dgs";
+	//public static String INSTANCE_TOPOLOGY="resources/topology/map2018-topology-ica";
+	public static String INSTANCE_TOPOLOGY="resources/topology/map2020-topologyExam1-tree.dgs";
 	//public static String INSTANCE_TOPOLOGY="resources/interlocking/mapInterlocking2-topology";
 	//public static String INSTANCE_TOPOLOGY="resources/map2018-topology";
 	//public static String INSTANCE_TOPOLOGY="resources/map2019-topologyExam1";
@@ -128,8 +131,6 @@ public final class ConfigurationFile {
 	 * Elements on the map
 	 */
 	
-	/**true if a grid environment should be generated, false otherwise (A dogoronev env is generated)**/
-	
 	public static boolean ACTIVE_WELL=false;
 	public static boolean ACTIVE_GOLD=true;
 	public static boolean ACTIVE_DIAMOND=false;
@@ -147,7 +148,8 @@ public final class ConfigurationFile {
 	//public static String INSTANCE_CONFIGURATION_ENTITIES=null;
 	//public static String INSTANCE_CONFIGURATION_ENTITIES="resources/agentExplo";
 	//public static String INSTANCE_CONFIGURATION_ENTITIES="resources/agentExplo-2";
-	public static String INSTANCE_CONFIGURATION_ENTITIES="resources/agentExploCoop-2";
+	//public static String INSTANCE_CONFIGURATION_ENTITIES="resources/agentExploCoop-2";
+	public static String INSTANCE_CONFIGURATION_ENTITIES="resources/agentExploCoop-2.json";
 	//public static String INSTANCE_CONFIGURATION_ENTITIES="resources/agentKeyboardControlled";
 	//public static String INSTANCE_CONFIGURATION_ENTITIES="resources/hunt/map2020-entitiesTree";
 	//public static String INSTANCE_CONFIGURATION_ENTITIES="resources/hunt/map2020-entitiesGraph";

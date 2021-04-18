@@ -50,6 +50,7 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 
 		super.setup();
 		
+		//get the parameters added to the agent at creation (if any)
 		final Object[] args = getArguments();
 		
 		List<String> list_agentNames=new ArrayList<String>();
