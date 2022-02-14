@@ -7,12 +7,16 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Dedale-etu</name>
 
-	<description>Project used to teach some of the principles of distributed systems and multi-agents systems</description>
+	<description>Project used for both research and teaching around distributed systems and multi-agents systems</description>
 
 	<organization>
 		<name>SU-LIP6-SMA</name>
 		<url>http://www.lip6.fr/recherche/team.php?id=380</url>
 	</organization>
+	
+	<distributionManagement>
+		<downloadUrl>http://dedale.gitlab.io</downloadUrl>
+	</distributionManagement>
 
 	<developers>
 		<developer>
@@ -152,6 +156,7 @@
 		</dependency>
 
 		<!-- dedaleRoot and Delta -->
+		<!-- 
 		<dependency>
 			<groupId>eu.su.mas</groupId>
 			<artifactId>dedale</artifactId>
@@ -159,19 +164,23 @@
 			<scope>system</scope>
 			<systemPath>${project.basedir}/libs/dedale/dedale.jar</systemPath>
 		</dependency>
+		-->
 		<dependency>
-			<groupId>eu.su.mas.delta</groupId>
-			<artifactId>mas</artifactId>
-			<version>1</version>
-			<scope>system</scope>
-			<systemPath>${project.basedir}/libs/delta/delta-mas.jar</systemPath>
+		    <groupId>com.gitlab.dedale</groupId>
+	    	<artifactId>dedale</artifactId>
+	    	<version>-SNAPSHOT</version>
 		</dependency>
+		
 		<dependency>
-			<groupId>eu.su.mas.utils</groupId>
+		    <groupId>com.gitlab.deltas</groupId>
+	    	<artifactId>mas</artifactId>
+	    	<version>-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.gitlab.herpsonc</groupId>
 			<artifactId>tools</artifactId>
-			<version>1</version>
-			<scope>system</scope>
-			<systemPath>${project.basedir}/libs/tools/tools.jar</systemPath>
+			<version>-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 
