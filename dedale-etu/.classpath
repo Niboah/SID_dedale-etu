@@ -23,20 +23,5 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="libs/dedale/dedale.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="jar:platform:/resource/dedale-etu/libs/dedale/dedale-doc.zip!/dedale/doc"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="libs/tools/tools.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="jar:platform:/resource/dedale-etu/libs/tools/tools-doc.zip!/tools/doc"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="libs/delta/delta-mas.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="jar:platform:/resource/dedale-etu/libs/delta/delta-mas.jar!/"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
