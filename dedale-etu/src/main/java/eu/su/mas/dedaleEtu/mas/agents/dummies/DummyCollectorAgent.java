@@ -1,9 +1,10 @@
 package eu.su.mas.dedaleEtu.mas.agents.dummies;
 
 
+import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import eu.su.mas.dedale.mas.agent.behaviours.startMyBehaviours;
+import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -95,10 +96,10 @@ public class DummyCollectorAgent extends AbstractDedaleAgent{
 		@Override
 		public void onTick() {
 			//Example to retrieve the current position
-			String myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
+			Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
 
-			if (myPosition!=""){
-				List<Couple<String,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
+			if (myPosition.getLocationId()!=""){
+				List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
 				System.out.println(this.myAgent.getLocalName()+" -- list of observables: "+lobs);
 
 				//Little pause to allow you to follow what is going on
@@ -132,7 +133,7 @@ public class DummyCollectorAgent extends AbstractDedaleAgent{
 
 				//If the agent picked (part of) the treasure
 				if (b){
-					List<Couple<String,List<Couple<Observation,Integer>>>> lobs2=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
+					List<Couple<Location,List<Couple<Observation,Integer>>>> lobs2=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
 					System.out.println("State of the observations after picking "+lobs2);
 				}
 

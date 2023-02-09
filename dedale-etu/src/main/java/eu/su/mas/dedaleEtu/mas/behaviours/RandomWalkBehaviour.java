@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Random;
 
 import dataStructures.tuple.Couple;
+import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import jade.core.behaviours.TickerBehaviour;
@@ -33,11 +34,11 @@ public class RandomWalkBehaviour extends TickerBehaviour{
 	@Override
 	public void onTick() {
 		//Example to retrieve the current position
-		String myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
+		Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
 		System.out.println(this.myAgent.getLocalName()+" -- myCurrentPosition is: "+myPosition);
 		if (myPosition!=null){
 			//List of observable from the agent's current position
-			List<Couple<String,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
+			List<Couple<Location, List<Couple<Observation, Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
 			System.out.println(this.myAgent.getLocalName()+" -- list of observables: "+lobs);
 
 			//Little pause to allow you to follow what is going on
@@ -70,7 +71,7 @@ public class RandomWalkBehaviour extends TickerBehaviour{
 
 			//If the agent picked (part of) the treasure
 			if (b){
-				List<Couple<String,List<Couple<Observation,Integer>>>> lobs2=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
+				List<Couple<Location, List<Couple<Observation, Integer>>>> lobs2=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
 				System.out.println(this.myAgent.getLocalName()+" - State of the observations after trying to pick something "+lobs2);
 			}
 

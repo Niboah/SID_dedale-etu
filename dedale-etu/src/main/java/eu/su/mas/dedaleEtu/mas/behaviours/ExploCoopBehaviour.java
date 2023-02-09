@@ -10,7 +10,9 @@ import java.util.Set;
 
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
+import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
+import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
@@ -76,11 +78,11 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 		}
 
 		//0) Retrieve the current position
-		String myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
+		String myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition().getLocationId();
 
 		if (myPosition!=null){
 			//List of observable from the agent's current position
-			List<Couple<String,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
+			List<Couple<Location, List<Couple<Observation, Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
 
 			/**
 			 * Just added here to let you see what the agent is doing, otherwise he will be too quick
@@ -96,9 +98,9 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 
 			//2) get the surrounding nodes and, if not in closedNodes, add them to open nodes.
 			String nextNode=null;
-			Iterator<Couple<String, List<Couple<Observation, Integer>>>> iter=lobs.iterator();
+			Iterator<Couple<Location, List<Couple<Observation, Integer>>>> iter=lobs.iterator();
 			while(iter.hasNext()){
-				String nodeId=iter.next().getLeft();
+				String nodeId=iter.next().getLeft().getLocationId();
 				boolean isNewNode=this.myMap.addNewNode(nodeId);
 				//the node may exist, but not necessarily the edge
 				if (myPosition!=nodeId) {
@@ -119,7 +121,7 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 				if (nextNode==null){
 					//no directly accessible openNode
 					//chose one, compute the path and take the first step.
-					nextNode=this.myMap.getShortestPathToClosestOpenNode(myPosition).get(0);//getShortestPath(myPosition,this.openNodes.get(0)).get(0);
+					nextNode = this.myMap.getShortestPathToClosestOpenNode(myPosition).get(0);//getShortestPath(myPosition,this.openNodes.get(0)).get(0);
 					//System.out.println(this.myAgent.getLocalName()+"-- list= "+this.myMap.getOpenNodes()+"| nextNode: "+nextNode);
 				}else {
 					//System.out.println("nextNode notNUll - "+this.myAgent.getLocalName()+"-- list= "+this.myMap.getOpenNodes()+"\n -- nextNode: "+nextNode);
@@ -160,7 +162,7 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 					this.myMap.mergeMap(sgreceived);
 				}
 
-				((AbstractDedaleAgent)this.myAgent).moveTo(nextNode);
+				((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(nextNode));
 			}
 
 		}

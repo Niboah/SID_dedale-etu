@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Set;
 
 import dataStructures.tuple.Couple;
+import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
+import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
@@ -61,11 +63,11 @@ public class ExploSoloBehaviour extends SimpleBehaviour {
 			this.myMap= new MapRepresentation();
 		
 		//0) Retrieve the current position
-		String myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
+		String myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition().getLocationId();
 	
 		if (myPosition!=null){
 			//List of observable from the agent's current position
-			List<Couple<String,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
+			List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
 
 			/**
 			 * Just added here to let you see what the agent is doing, otherwise he will be too quick
@@ -84,9 +86,9 @@ public class ExploSoloBehaviour extends SimpleBehaviour {
 
 			//2) get the surrounding nodes and, if not in closedNodes, add them to open nodes.
 			String nextNode=null;
-			Iterator<Couple<String, List<Couple<Observation, Integer>>>> iter=lobs.iterator();
+			Iterator<Couple<Location, List<Couple<Observation, Integer>>>> iter=lobs.iterator();
 			while(iter.hasNext()){
-				String nodeId=iter.next().getLeft();
+				String nodeId=iter.next().getLeft().getLocationId();
 				if (!this.closedNodes.contains(nodeId)){
 					if (!this.openNodes.contains(nodeId)){
 						this.openNodes.add(nodeId);
@@ -147,7 +149,7 @@ public class ExploSoloBehaviour extends SimpleBehaviour {
 
 				//If the agent picked (part of) the treasure
 				if (b){
-					List<Couple<String,List<Couple<Observation,Integer>>>> lobs2=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
+					List<Couple<Location,List<Couple<Observation,Integer>>>> lobs2=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
 					System.out.println(this.myAgent.getLocalName()+" - State of the observations after picking "+lobs2);
 					
 					//Trying to store everything in the tanker
@@ -166,7 +168,7 @@ public class ExploSoloBehaviour extends SimpleBehaviour {
 				/************************************************
 				 * 				END API CALL ILUSTRATION
 				 *************************************************/
-				((AbstractDedaleAgent)this.myAgent).moveTo(nextNode);
+				((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(nextNode));
 			}
 
 		}
