@@ -7,47 +7,46 @@ import jade.core.Agent;
 import jade.core.behaviours.TickerBehaviour;
 import jade.lang.acl.ACLMessage;
 
+import java.util.Objects;
+
 /**
  * This example behaviour try to send a hello message (every 3s maximum) to agents Collect2 Collect1
- * @author hc
  *
+ * @author hc
  */
-public class SayHelloBehaviour extends TickerBehaviour{
+public class SayHelloBehaviour extends TickerBehaviour {
+    /**
+     *
+     */
+    private static final long serialVersionUID = -2058134622078521998L;
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -2058134622078521998L;
+    /**
+     * An agent tries to contact its friend and to give him its current position
+     *
+     * @param myAgent the agent who posses the behaviour
+     */
+    public SayHelloBehaviour(final Agent myAgent) {
+        super(myAgent, 3000);
+    }
 
-	/**
-	 * An agent tries to contact its friend and to give him its current position
-	 * @param myagent the agent who posses the behaviour
-	 *  
-	 */
-	public SayHelloBehaviour (final Agent myagent) {
-		super(myagent, 3000);
-		//super(myagent);
-	}
+    @Override
+    public void onTick() {
+        Location myPosition = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition();
 
-	@Override
-	public void onTick() {
-		Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
+        //A message is defined by : a performative, a sender, a set of receivers, (a protocol),(a content (and/or contentObject))
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        msg.setSender(this.myAgent.getAID());
+        msg.setProtocol("UselessProtocol");
 
-		//A message is defined by : a performative, a sender, a set of receivers, (a protocol),(a content (and/or contentOBject))
-		ACLMessage msg=new ACLMessage(ACLMessage.INFORM);
-		msg.setSender(this.myAgent.getAID());
-		msg.setProtocol("UselessProtocol");
+        if (!Objects.equals(myPosition.getLocationId(), "")) {
+            //System.out.println("Agent "+this.myAgent.getLocalName()+ " is trying to reach its friends");
+            msg.setContent("Hello World, I'm at " + myPosition);
 
-		if (myPosition.getLocationId()!=""){
-			//System.out.println("Agent "+this.myAgent.getLocalName()+ " is trying to reach its friends");
-			msg.setContent("Hello World, I'm at "+myPosition);
+            msg.addReceiver(new AID("Collect1", AID.ISLOCALNAME));
+            msg.addReceiver(new AID("Collect2", AID.ISLOCALNAME));
 
-			msg.addReceiver(new AID("Collect1",AID.ISLOCALNAME));
-			msg.addReceiver(new AID("Collect2",AID.ISLOCALNAME));
-			
-
-			//Mandatory to use this method (it takes into account the environment to decide if someone is reachable or not)
-			((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
-		}
-	}
+            //Mandatory to use this method (it takes into account the environment to decide if someone is reachable or not)
+            ((AbstractDedaleAgent) this.myAgent).sendMessage(msg);
+        }
+    }
 }
