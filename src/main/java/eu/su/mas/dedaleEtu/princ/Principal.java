@@ -40,14 +40,12 @@ public class Principal {
         List<AgentController> agentList; // agents' ref
         if(ConfigurationFile.COMPUTERisMAIN) {
             //Whe should create the Platform and the GateKeeper, whether the platform is distributed or not
-
             //1), create the platform (Main container (DF+AMS) + containers + monitoring agents : RMA and SNIFFER)
             principal.emptyPlatform();
         } else {
             //We only have to create the local container and our agents
-
             //1') If a distant platform already exists, and you want to create and connect your container to it
-            principal.createAndConnectContainer(ConfigurationFile.LOCAL_CONTAINER_NAME, ConfigurationFile.PLATFORM_HOSTNAME, ConfigurationFile.PLATFORM_ID, ConfigurationFile.PLATFORM_PORT);
+            principal.createAndConnectContainer(ConfigurationFile.LOCAL_CONTAINER_NAMES[0], ConfigurationFile.PLATFORM_HOSTNAME, ConfigurationFile.PLATFORM_ID, ConfigurationFile.PLATFORM_PORT);
         }
         //2) create the gatekeeper (in charge of the environment), the agents, and add them to the platform.
         agentList = createAgents(principal.containerList);
@@ -94,7 +92,7 @@ public class Principal {
         System.out.println("Launching containers ...");
 
         //create the container0
-        containerName = ConfigurationFile.LOCAL_CONTAINER_NAME;
+        containerName = ConfigurationFile.LOCAL_CONTAINER_NAMES[0];
         pContainer = new ProfileImpl(ConfigurationFile.PLATFORM_HOSTNAME, ConfigurationFile.PLATFORM_PORT, ConfigurationFile.PLATFORM_ID);
         pContainer.setParameter(Profile.CONTAINER_NAME, containerName);
         System.out.println("Launching container " + pContainer);
@@ -103,7 +101,7 @@ public class Principal {
         containerList.put(containerName, containerRef);
 
         //create the container0
-        containerName = ConfigurationFile.LOCAL_CONTAINER2_NAME;
+        containerName = ConfigurationFile.LOCAL_CONTAINER_NAMES[1];
         pContainer = new ProfileImpl(ConfigurationFile.PLATFORM_HOSTNAME, ConfigurationFile.PLATFORM_PORT, ConfigurationFile.PLATFORM_ID);
         pContainer.setParameter(Profile.CONTAINER_NAME, containerName);
         System.out.println("Launching container " + pContainer);
@@ -112,7 +110,7 @@ public class Principal {
         containerList.put(containerName, containerRef);
 
         //create the container1
-        containerName = ConfigurationFile.LOCAL_CONTAINER3_NAME;
+        containerName = ConfigurationFile.LOCAL_CONTAINER_NAMES[2];
         pContainer = new ProfileImpl(ConfigurationFile.PLATFORM_HOSTNAME, ConfigurationFile.PLATFORM_PORT, ConfigurationFile.PLATFORM_ID);
         //pContainer = new ProfileImpl(null, 8888, null);
         pContainer.setParameter(Profile.CONTAINER_NAME, containerName);
@@ -121,7 +119,7 @@ public class Principal {
         containerList.put(containerName, containerRef);
 
         //create the container2
-        containerName = ConfigurationFile.LOCAL_CONTAINER4_NAME;
+        containerName = ConfigurationFile.LOCAL_CONTAINER_NAMES[3];
         pContainer = new ProfileImpl(ConfigurationFile.PLATFORM_HOSTNAME, ConfigurationFile.PLATFORM_PORT, ConfigurationFile.PLATFORM_ID);
         //pContainer = new ProfileImpl(null, 8888, null);
         pContainer.setParameter(Profile.CONTAINER_NAME, containerName);
@@ -212,7 +210,7 @@ public class Principal {
             /*
              * The main is on this computer, we deploy the GateKeeper
              */
-            c = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME);
+            c = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAMES[0]);
             Assert.assertNotNull("This container does not exist", c);
             agentName = ConfigurationFile.DEFAULT_GATEKEEPER_NAME;
             try {
@@ -238,7 +236,7 @@ public class Principal {
 
         // User controlled agent (with N(ext) and O(k))
         //1) Get the container where the agent will appear
-        c = containerList.get(ConfigurationFile.LOCAL_CONTAINER2_NAME);
+        c = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAMES[1]);
         Assert.assertNotNull("This container does not exist", c);
 
         //2) Give the name of your agent, MUST be the same as the one given in the entities file.
@@ -282,7 +280,7 @@ public class Principal {
 
         // AGENT 1stAgent
         //1) Get the container where the agent will appear
-        c = containerList.get(ConfigurationFile.LOCAL_CONTAINER2_NAME);
+        c = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAMES[1]);
         Assert.assertNotNull("This container does not exist", c);
 
         //2) Give the name of your agent, MUST be the same as the one given in the entities file.
@@ -298,7 +296,7 @@ public class Principal {
 
         // AGENT 2ndAgent
         //1) Get the container where the agent will appear
-        c = containerList.get(ConfigurationFile.LOCAL_CONTAINER2_NAME);
+        c = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAMES[1]);
         Assert.assertNotNull("This container does not exist", c);
 
         //2) Give the name of your agent, MUST be the same as the one given in the entities file.
