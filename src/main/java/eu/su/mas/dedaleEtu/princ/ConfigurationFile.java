@@ -26,12 +26,8 @@ public final class ConfigurationFile {
     public static Integer PLATFORM_PORT = 8887;
 
     // List of containers to be created on the current computer
-    public static String[] LOCAL_CONTAINER_NAMES = new String[] {
-            PLATFORM_ID + "_container1",
-            PLATFORM_ID + "_container2",
-            PLATFORM_ID + "_container3",
-            PLATFORM_ID + "_container4"
-    };
+    public static String LOCAL_CONTAINER_NAME_MGMT   = PLATFORM_ID + "_" + "container1";
+    public static String LOCAL_CONTAINER_NAME_AGENTS = PLATFORM_ID + "_" + "container2";
 
     // 2) Environment parameters
 

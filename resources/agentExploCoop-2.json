@@ -22,7 +22,7 @@
   "lockPickingExpertise":1
   },
   { 
-  "agentType":"HumanControlled",
+  "agentType":"agentExplo",
   "agentName": "ImHere",
   "communicationRange": 3,
   "initialLocation": "free",
