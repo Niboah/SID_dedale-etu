@@ -32,24 +32,6 @@ import java.util.List;
  * @author hc
  */
 public class Principal {
-    // ADD YOUR AGENTS HERE - As many as you want.
-    // Any agent added here should have its associated configuration available in the entities file
-    // or otherwise its behaviour won't be started.
-    // The platform will not work unless all agents defined in the entities file are bound by name
-    // to agents in this list.
-    private final AgentController[] agentsToAdd = new AgentController[]{
-            newDummyMovingAgent("ImHere"),
-            newGolem("Golem1"),
-            newGolem("Golem2"),
-            newExploreCoopAgent("1stAgent", new String[]{"2ndAgent"}),
-            newExploreCoopAgent("2ndAgent", new String[]{"1stAgent"}),
-            newDummyMovingAgent("Explo1"),
-            newExploreSoloAgent("Explo2"),
-            newDummyMovingAgent("Explo3"),
-            newCollectorAgent("Collect1"),
-            newTankerAgent("Tanker1")
-    };
-
     // container's name - container's ref
     private final HashMap<String, ContainerController> containerList;
 
@@ -71,7 +53,7 @@ public class Principal {
                     ConfigurationFile.PLATFORM_PORT);
         }
         //2) create the gatekeeper (in charge of the environment), the agents, and add them to the platform.
-        List<AgentController> agentList = principal.createAgents(principal.containerList);
+        List<AgentController> agentList = principal.createAgents();
         //3) launch agents (until this point, no behaviour for these agents is started yet)
         principal.startAgents(agentList);
     }
@@ -83,7 +65,8 @@ public class Principal {
         Runtime rt = Runtime.instance();
 
         // 1) create a platform (main container+DF+AMS)
-        Profile pMain = new ProfileImpl(ConfigurationFile.PLATFORM_HOSTNAME, ConfigurationFile.PLATFORM_PORT, ConfigurationFile.PLATFORM_ID);
+        Profile pMain = new ProfileImpl(ConfigurationFile.PLATFORM_HOSTNAME,
+                ConfigurationFile.PLATFORM_PORT, ConfigurationFile.PLATFORM_ID);
         System.out.println("Launching a main-container..." + pMain);
         AgentContainer mainContainerRef = rt.createMainContainer(pMain); //DF and AMS are include
 
@@ -128,8 +111,6 @@ public class Principal {
      * @param port          (if null, 8888 by default)
      */
     private void createAndConnectContainer(String containerName, String host, String platformID, Integer port) {
-        ProfileImpl pContainer;
-        ContainerController containerRef;
         Runtime rti = Runtime.instance();
 
         if (port == null) {
@@ -138,9 +119,9 @@ public class Principal {
 
         System.out.println("Create and Connect container " + containerName + " to the host : " + host + ", platformID: " + platformID + " on port " + port);
 
-        pContainer = new ProfileImpl(host, port, platformID);
+        ProfileImpl pContainer = new ProfileImpl(host, port, platformID);
         pContainer.setParameter(Profile.CONTAINER_NAME, containerName);
-        containerRef = rti.createAgentContainer(pContainer);
+        AgentContainer containerRef = rti.createAgentContainer(pContainer);
 
         containerList.put(containerName, containerRef);
     }
@@ -155,10 +136,9 @@ public class Principal {
     private void createMonitoringAgents(ContainerController mc) {
         Assert.assertNotNull(mc);
         System.out.println("Launching the rma agent on the main container ...");
-        AgentController rma;
 
         try {
-            rma = mc.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
+            AgentController rma = mc.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
             rma.start();
         } catch (StaleProxyException e) {
             e.printStackTrace();
@@ -180,12 +160,12 @@ public class Principal {
     // Methods used to create the agents and to start them
 
     /**
-     * Creates the agents and add them to the agentList.  agents are NOT started.
+     * Creates the agents and add them to the agentList.
+     * Agents are NOT started yet at this point.
      *
-     * @param containerList :Name and container's ref
      * @return the agentList
      */
-    private List<AgentController> createAgents(HashMap<String, ContainerController> containerList) {
+    private List<AgentController> createAgents() {
         System.out.println("Launching agents...");
         ContainerController c;
         String agentName;
@@ -215,6 +195,24 @@ public class Principal {
         // They will have to find the gatekeeper's container to deploy themselves in the environment.
         // This is automatically performed by every agent that extends AbstractDedaleAgent
 
+        // ADD YOUR AGENTS HERE - As many as you want.
+        // Any agent added here should have its associated configuration available in the entities file
+        // or otherwise its behaviour won't be started.
+        // The platform will not work unless all agents defined in the entities file are bound by name
+        // to agents in this list.
+        AgentController[] agentsToAdd = new AgentController[]{
+                newDummyMovingAgent("ImHere"),
+                newGolem("Golem1"),
+                newGolem("Golem2"),
+                newExploreCoopAgent("1stAgent", new String[]{"2ndAgent"}),
+                newExploreCoopAgent("2ndAgent", new String[]{"1stAgent"}),
+                newDummyMovingAgent("Explo1"),
+                newExploreSoloAgent("Explo2"),
+                newDummyMovingAgent("Explo3"),
+                newCollectorAgent("Collect1"),
+                newTankerAgent("Tanker1")
+        };
+
         for(AgentController ac: agentsToAdd) {
             if(ac != null) {
                 // We don't start the agents that are NOT in the entities file
@@ -242,6 +240,7 @@ public class Principal {
             System.out.println("Loading " + agentName + " of class " + agentClass.getName() + " has failed.");
             System.out.println("Quite likely the agent was not included in the configuration file. Error:");
             System.out.println(re.getMessage());
+            re.printStackTrace();
             return null;
         }
     }
