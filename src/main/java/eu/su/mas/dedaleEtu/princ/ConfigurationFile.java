@@ -181,6 +181,8 @@ public final class ConfigurationFile {
             "src/test/java/resources/map2018-agentTankerCollect";
     private static final String INSTANCE_CONFIGURATION_ENTITIES_2019_EXAM1 =
             "src/test/java/resources/map2019-entitiesExam1";
+    private static final String INSTANCE_CONFIGURATION_ENTITIES_LAB =
+            "resources/agentLab.json";
     public static final String INSTANCE_CONFIGURATION_ENTITIES =
-            INSTANCE_CONFIGURATION_ENTITIES_AGENTEXPLOCOOP_2_JSON;
+            INSTANCE_CONFIGURATION_ENTITIES_LAB;
 }
