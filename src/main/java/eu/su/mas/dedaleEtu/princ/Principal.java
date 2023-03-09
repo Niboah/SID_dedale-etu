@@ -3,10 +3,8 @@ package eu.su.mas.dedaleEtu.princ;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agents.GateKeeperAgent;
 import eu.su.mas.dedale.mas.agents.dedaleDummyAgents.DummyWumpusShift;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.DummyCollectorAgent;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.DummyMovingAgent;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.DummyTankerAgent;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.ExploreSoloAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.*;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.LabAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
@@ -201,7 +199,7 @@ public class Principal {
         // The platform will not work unless all agents defined in the entities file are bound by name
         // to agents in this list.
         AgentController[] agentsToAdd = new AgentController[]{
-                newAgent("Lab", new String[] {}, ),
+                newAgent("Lab", new String[] {}, eu.su.mas.dedaleEtu.mas.agents.dummies.LabAgent),
                 newDummyMovingAgent("ImHere"),
                 newGolem("Golem1"),
                 newGolem("Golem2"),
