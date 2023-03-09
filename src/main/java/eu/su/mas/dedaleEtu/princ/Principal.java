@@ -200,7 +200,7 @@ public class Principal {
         // to agents in this list.
         AgentController[] agentsToAdd = new AgentController[]{
                 newAgent("Lab", new String[] {},
-                        eu.su.mas.dedaleEtu.mas.agents.dummies.LabAgent.class),
+                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.LabAgent.class),
                 newDummyMovingAgent("ImHere"),
                 newGolem("Golem1"),
                 newGolem("Golem2"),
