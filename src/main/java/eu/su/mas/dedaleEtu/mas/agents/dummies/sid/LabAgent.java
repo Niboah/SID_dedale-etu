@@ -4,12 +4,29 @@ import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours;
 import eu.su.mas.dedaleEtu.mas.behaviours.RandomWalkBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.SayHelloBehaviour;
+import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class LabAgent extends AbstractDedaleAgent {
+    static class HelloWorldBehaviour extends Behaviour {
+        public HelloWorldBehaviour(Agent agent) {
+            super(agent);
+        }
+
+        @Override
+        public void action() {
+            System.out.println("Lab agent says: \"Hello world!\"");
+        }
+
+        @Override
+        public boolean done() {
+            return true;
+        }
+    }
+
     /**
      * This method is automatically called when "agent".start() is executed.
      * Consider that Agent is launched for the first time.
@@ -22,6 +39,7 @@ public class LabAgent extends AbstractDedaleAgent {
         List<Behaviour> lb = new ArrayList<>();
 
         // ADD the initial behaviours
+        lb.add(new HelloWorldBehaviour(this));
 
         // MANDATORY TO ALLOW YOUR AGENT TO BE DEPLOYED CORRECTLY
         addBehaviour(new startMyBehaviours(this, lb));
