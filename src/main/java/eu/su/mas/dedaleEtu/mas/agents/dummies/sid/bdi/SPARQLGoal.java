@@ -3,7 +3,7 @@ package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi;
 import bdi4jade.belief.Belief;
 import bdi4jade.belief.BeliefBase;
 import bdi4jade.goal.AbstractBeliefGoal;
-import com.github.jsonldjava.shaded.com.google.common.collect.Lists;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 
