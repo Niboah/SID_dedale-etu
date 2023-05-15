@@ -1,7 +1,7 @@
 [
   { 
     "agentType":"agentExplo",
-    "agentName": "Lab",
+    "agentName": "Agent_P3",
     "communicationRange": 3,
     "initialLocation": "free",
     "backPackCapacityGold": -1,

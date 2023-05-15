@@ -1,0 +1,280 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.semanticweb.org/15arch6h/ontologies/2023/3/untitled-ontology-5/"
+     xml:base="http://www.semanticweb.org/15arch6h/ontologies/2023/3/untitled-ontology-5/"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#connect -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#connect">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#node"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#node"/>
+        <rdfs:comment>Si un nodo tiene esta propiedad con otro nodo quiere decir que esta en distancia 1 de este nodo</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#hasAgent -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#hasAgent">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <owl:inverseOf rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#inNode"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#node"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#agent"/>
+        <rdfs:comment>El agente esta en este nodo</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#hasObject -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#hasObject">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <owl:inverseOf rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#objectInNode"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#node"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#object"/>
+        <rdfs:comment>El objeto esta en este nodo</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#inNode -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#inNode">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#agent"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#node"/>
+        <rdfs:comment>El agente esta en este nodo</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#objectInNode -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#objectInNode">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#object"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#node"/>
+        <rdfs:comment>El objeto esta en este nodo</rdfs:comment>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#capacity -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#capacity">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#agent"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#real"/>
+        <rdfs:comment>capacidad de los agentes</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#id -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#id">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#node"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>identificador del nodo</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#name -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#name">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#agent"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Nombre del agente</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#objName -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#objName">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#object"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment>Nombre de los objetos</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#quantity -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#quantity">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#object"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#real"/>
+        <rdfs:comment>peso de los objetos</rdfs:comment>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#agent -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#agent"/>
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#canDrop -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#canDrop">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#collector"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#inNode"/>
+                        <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#nearTanker"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#collector"/>
+        <rdfs:comment>el recolector que esta contiguo a un agente almacenamiento</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#collector -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#collector">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#agent"/>
+        <rdfs:comment>el agente que tiene rol recolector</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#explorer -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#explorer">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#agent"/>
+        <rdfs:comment>el agente que tiene rol explorador</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#hasTanker -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#hasTanker">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#node"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#hasAgent"/>
+                        <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#tanker"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#node"/>
+        <rdfs:comment>El nodo que tiene un agente almacenamiento en su posición</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#nearTanker -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#nearTanker">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#node"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#connect"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#hasTanker"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#node"/>
+        <rdfs:comment>El nodo que conecta un nodo que tiene un agente almacenamiento</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#node -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#node">
+        <rdfs:comment>els nodos para representar el grafo de la mapa</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#object -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#object">
+        <rdfs:comment>los recursos y viento</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#tanker -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#tanker">
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#agent"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#inNode"/>
+                        <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.semanticweb.org/15arch6h/ontologies/2023/3/dedalu#hasTanker"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <rdfs:comment>el agente que tiene rol almacenamiento</rdfs:comment>
+    </owl:Class>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.5.9.2019-02-01T07:24:44Z) https://github.com/owlcs/owlapi -->
+

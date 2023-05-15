@@ -6,6 +6,8 @@ import eu.su.mas.dedale.mas.agents.dedaleDummyAgents.DummyWumpusShift;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.*;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.BDIAgent;
+import eu.su.mas.dedaleEtu.mas.agents.my.Agent_BDI;
+import eu.su.mas.dedaleEtu.mas.agents.my.Agent_P3;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
@@ -199,8 +201,8 @@ public class Principal {
         // The platform will not work unless all agents defined in the entities file are bound by name
         // to agents in this list.
         AgentController[] agentsToAdd = new AgentController[]{
-                newAgent("Lab", new String[] {},
-                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent.class),
+                newAgent("Agent_P3", new String[] {}, Agent_P3.class),
+                /*
                 newDummyMovingAgent("ImHere"),
                 newGolem("Golem1"),
                 newGolem("Golem2"),
@@ -211,6 +213,7 @@ public class Principal {
                 newDummyMovingAgent("Explo3"),
                 newCollectorAgent("Collect1"),
                 newTankerAgent("Tanker1"),
+                */
         };
 
         for(AgentController ac: agentsToAdd) {
@@ -223,7 +226,7 @@ public class Principal {
         try {
             AgentController nonDedaleAgent =
                     containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_AGENTS).createNewAgent(
-                            "BDI1", BDIAgent.class.getName(), new Object[] {});
+                            "BDI1", Agent_BDI.class.getName(), new Object[] {});
             agentList.add(nonDedaleAgent);
         } catch (StaleProxyException e) {
             e.printStackTrace();

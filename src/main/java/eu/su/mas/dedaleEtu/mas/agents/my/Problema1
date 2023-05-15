@@ -1,0 +1,16 @@
+Problema 1
+
+Los dos agentes comparten el mismo codigo "Agent_P1", se diferencian los roles al setup. Se usa 5 Behaviours
+    - InitBehaviour, es un extend de WakerBehaviour, en este Behaviours se inicializa un MapRepresentation para cada agente y se unsa el DirectoryFacilitator para descubrir los demas agentes.
+    - ExploreBehaviour, explorar el entorno, evitando todos los obstaculos posibles.
+    - ShareInfoBehaviour, envia y recive informacin del entorno obtenido por el ExploreBehaviour, y tambien envia y recive informacion sobre las posiciones de los demas agentes.
+    - InitPosBehaviour, envia la posicion inicial del agente y recive la poscion inicial del agente objetivo, por el protocolo establecido en este problema.
+    - GoPosBehaviour, va a la posicion indicada.
+
+Al principo se usa el InitBehaviour para evitar inicializar Behaviours antes de que la plataforma este lista.
+Luego el agente A explora el entorno con el ExploreBehaviour, si se encuentra con algun agente se intercambian informacion con el ShareInfoBehaviour, y si se encuentra con el agente B con el InitPosBehaviour
+se intercambia las posiciones iniciales, el agente B inicializa el GoPosBehaviour y va a la posicion inicial de A, mientras que A sigue explorando el entorno, si se encuentra con la posicion inicial de B se para, sino
+continua con la exploracion hasta recorrer todo el entorno, e inicializa el GoPosBehaviour y  va a la posicion inicial de B.
+
+Cada persona hace dos Behaviour exeptio el que hace el ExploreBehaviour que solo hace uno.
+
