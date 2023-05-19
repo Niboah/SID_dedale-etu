@@ -21,7 +21,7 @@ import jade.lang.acl.MessageTemplate;
 import java.util.*;
 
 public class Agent_P3 extends AbstractDedaleAgent {
-    private static int DOWAIT=50;
+    private static int DOWAIT=200;
     private String name;
     private String type;
     private MapRepresentation map;
@@ -252,9 +252,6 @@ public class Agent_P3 extends AbstractDedaleAgent {
                 content+=node;
                 for(Couple<Observation, Integer> c : lob.getRight())
                     content+= " "+c.getLeft().toString()+":"+c.getRight();
-
-
-
                 content+="\n";
             }
             sendObserve(content);
