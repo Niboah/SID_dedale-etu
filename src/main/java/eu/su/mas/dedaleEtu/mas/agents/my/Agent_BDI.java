@@ -10,7 +10,7 @@ import bdi4jade.goal.*;
 import bdi4jade.plan.Plan;
 import bdi4jade.core.SingleCapabilityAgent;
 import bdi4jade.plan.DefaultPlan;
-import bdi4jade.plan.planbody.AbstractPlanBody;
+
 import bdi4jade.plan.planbody.BeliefGoalPlanBody;
 import bdi4jade.reasoning.DefaultBeliefRevisionStrategy;
 import bdi4jade.reasoning.DefaultDeliberationFunction;
@@ -38,7 +38,7 @@ public class Agent_BDI extends SingleCapabilityAgent {
     private STATE state;
     private List<String> openNodes; //Nodes known but no visited
     private Set<String> closedNodes; //Visited node
-    private Map<String,List<String[]>> recursos;
+    private Map<String,Map<String,String>> recursos; // Recurso : (Nodo:Quatitat)
 
     private Set<String> pozos;
 
@@ -267,8 +267,29 @@ public class Agent_BDI extends SingleCapabilityAgent {
                     openNodes.remove(node);
                     closedNodes.add(node);
                     for(String e:c){
-                        String name=e.split(":")[0];
-                        if(name.equals("WIND")) nearWell=true;
+                        String[] info = e.split(":");
+                        String name=info[0];
+                        String quantity="0";
+                        if(info.length>1) quantity=info[1];
+                        Map<String,String> recursoNodo;
+                        switch (name){
+                            case "WIND":
+                                nearWell=true;
+                                break;
+                            case "Gold":
+
+                                if(!recursos.containsKey("Gold")) recursoNodo=new HashMap<>();
+                                else recursoNodo = recursos.get("Gold");
+                                recursoNodo.put(node,quantity);
+                                recursos.put("Gold",recursoNodo);
+                                break;
+                            case "Diamond":
+                                if(!recursos.containsKey("Diamond")) recursoNodo=new HashMap<>();
+                                else recursoNodo = recursos.get("Diamond");
+                                recursoNodo.put(node,quantity);
+                                recursos.put("Diamond",recursoNodo);
+                                break;
+                        }
                     }
                 }else{
                     nearList.add(Integer.parseInt(node));
@@ -289,12 +310,6 @@ public class Agent_BDI extends SingleCapabilityAgent {
                                     openNodes.remove(node);
                                     closedNodes.remove(node);
                                 }
-                                break;
-                            case "Gold":
-                                recursos.get("Gold").add(new String[]{node, quantity});
-                                break;
-                            case "Diamond":
-                                recursos.get("Diamond").add(new String[]{node, quantity});
                                 break;
                         }
                     }
@@ -321,7 +336,15 @@ public class Agent_BDI extends SingleCapabilityAgent {
                         state=STATE.FINISH;
                         System.out.println("FINISH");
                         historial.add("FINISH");
-                        System.out.println(recursos);
+
+                        for(String recursoName: recursos.keySet()){
+                            System.out.println(recursoName);
+                            String text="";
+                            Map<String,String> recurso=recursos.get(recursoName);
+                            for(String node:recurso.keySet())
+                                text+=" "+node+":"+recurso.get(node);
+                            System.out.println(text);
+                        }
                         getBeliefBase().updateBelief(I_KNOW_ALL_MAP, true);
                        // setEndState(Plan.EndState.SUCCESSFUL);
                     }

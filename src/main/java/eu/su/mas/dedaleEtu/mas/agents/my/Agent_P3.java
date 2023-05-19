@@ -21,7 +21,7 @@ import jade.lang.acl.MessageTemplate;
 import java.util.*;
 
 public class Agent_P3 extends AbstractDedaleAgent {
-    private static int DOWAIT=200;
+    private static int DOWAIT=50;
     private String name;
     private String type;
     private MapRepresentation map;
