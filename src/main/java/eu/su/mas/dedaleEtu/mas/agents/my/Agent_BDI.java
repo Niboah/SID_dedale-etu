@@ -182,7 +182,6 @@ public class Agent_BDI extends SingleCapabilityAgent {
             if (requestMenssage.getContent() == null)  return;
 
             content = requestMenssage.getContent();
-            goal=content;
             openNodes.add(content);
             System.out.println(myAgent.getLocalName()+" Receive request "+agentAID+" start in "+content);
             historial.add(myAgent.getLocalName()+" Receive request "+agentAID+" start in "+content);
@@ -200,7 +199,6 @@ public class Agent_BDI extends SingleCapabilityAgent {
                 if (refuseMenssage.getContent() != null) {
                     String content = refuseMenssage.getContent();
                     state = STATE.RUNNING;
-
                     System.out.println(myAgent.getLocalName()+" Receive agree "+content);
                     historial.add(myAgent.getLocalName()+" Receive agree "+content);
                 }
@@ -214,7 +212,7 @@ public class Agent_BDI extends SingleCapabilityAgent {
 
                     System.out.println(myAgent.getLocalName()+" Receive refuse "+content);
                     historial.add(myAgent.getLocalName()+" Receive refuse "+content);
-
+                    goal="-1";
                     failList.add(content);
                     state = STATE.FAIL;
                 }
@@ -246,6 +244,7 @@ public class Agent_BDI extends SingleCapabilityAgent {
                 if (refuseMenssage.getContent() != null) {
                     String content = refuseMenssage.getContent();
                     failList.add(content);
+                    goal="-1";
                     state = STATE.FAIL;
                     System.out.println(myAgent.getLocalName()+" Receive failure "+content);
                     historial.add(myAgent.getLocalName()+" Receive failure "+content);
@@ -309,10 +308,6 @@ public class Agent_BDI extends SingleCapabilityAgent {
                 }
                 adjList.put(Integer.parseInt(currentNode),nearList);
             }
-            if (currentNode.equals(goal)) {
-                state = STATE.READY;
-                goal="-1";
-            }
         }
     }
 
@@ -328,11 +323,11 @@ public class Agent_BDI extends SingleCapabilityAgent {
                     break;
                 case READY:
                     if(openNodes.size()>0){
+                        if(goal!="-1")break;
                         String next=openNodes.get(0);
                         if(!currentNode.equals("")) next = BFS(Integer.parseInt(currentNode));
                         goal=next;
                         request(next);
-                        state=STATE.RUNNING;
                     }else if(openNodes.isEmpty()){
                         state=STATE.FINISH;
                         System.out.println("FINISH");
@@ -352,10 +347,11 @@ public class Agent_BDI extends SingleCapabilityAgent {
                     }
                     break;
                 case FAIL:
+                    if(goal!="-1")break;
                     String next = BFS(Integer.parseInt(currentNode));
                     goal=next;
                     request(next);
-                    state=STATE.RUNNING;
+
                     break;
             }
         }
@@ -381,6 +377,64 @@ public class Agent_BDI extends SingleCapabilityAgent {
                     text+=" Nodo "+node+":"+recurso.get(node);
                 System.out.println(text);
             }
+        }
+
+        private String BFS(int s) {
+            // Mark all the vertices as not visited(By default
+            // set as false)
+            boolean visited[] = new boolean[1000];
+
+            // Create a queue for BFS
+            LinkedList<Integer> queue = new LinkedList<Integer>();
+
+            // Mark the current node as visited and enqueue it
+            visited[s] = true;
+            queue.add(s);
+
+            while (queue.size() != 0) {
+
+                // Dequeue a vertex from queue and print it
+                s = queue.poll();
+                System.out.print(s + " ");
+
+                // Get all adjacent vertices of the dequeued
+                // vertex s If a adjacent has not been visited,
+                // then mark it visited and enqueue it
+                List<Integer> adj =adjList.get(s);
+                if(adj==null)
+                    continue;
+                Iterator<Integer> i = adj.listIterator();
+                while (i.hasNext()) {
+                    int n = i.next();
+
+                    //contains no funciona :c
+                    Boolean contain=false;
+                    for(String f: failList){
+                        if(f.equals(Integer.toString(n))){
+                            contain = true;
+                            break;
+                        }
+                    }
+                    if(contain)
+                        continue;
+
+                    if (!visited[n]) {
+                        visited[n] = true;
+                        queue.add(n);
+                    }
+
+                    if(openNodes.contains(n+""))
+                        return n+"";
+                }
+            }
+            String next ="";
+            for (Iterator<String> iter = closedNodes.iterator(); iter.hasNext(); ) {
+                next = iter.next();
+                if(failList.contains(next))
+                    continue;
+                return next;
+            }
+            return next;
         }
     }
 
@@ -457,61 +511,5 @@ public class Agent_BDI extends SingleCapabilityAgent {
         });
     }
 
-    private String BFS(int s) {
-        // Mark all the vertices as not visited(By default
-        // set as false)
-        boolean visited[] = new boolean[1000];
 
-        // Create a queue for BFS
-        LinkedList<Integer> queue = new LinkedList<Integer>();
-
-        // Mark the current node as visited and enqueue it
-        visited[s] = true;
-        queue.add(s);
-
-        while (queue.size() != 0) {
-
-            // Dequeue a vertex from queue and print it
-            s = queue.poll();
-            System.out.print(s + " ");
-
-            // Get all adjacent vertices of the dequeued
-            // vertex s If a adjacent has not been visited,
-            // then mark it visited and enqueue it
-            List<Integer> adj =adjList.get(s);
-            if(adj==null)
-                continue;
-            Iterator<Integer> i = adj.listIterator();
-            while (i.hasNext()) {
-                int n = i.next();
-
-                //contains no funciona :c
-                Boolean contain=false;
-                for(String f: failList){
-                    if(f.equals(Integer.toString(n))){
-                        contain = true;
-                        break;
-                    }
-                }
-                if(contain)
-                    continue;
-
-                if (!visited[n]) {
-                    visited[n] = true;
-                    queue.add(n);
-                }
-
-                if(openNodes.contains(n+""))
-                    return n+"";
-            }
-        }
-        String next ="";
-        for (Iterator<String> iter = closedNodes.iterator(); iter.hasNext(); ) {
-            next = iter.next();
-            if(failList.contains(next))
-                continue;
-            return next;
-        }
-        return next;
-    }
 }

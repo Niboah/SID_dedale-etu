@@ -32,7 +32,6 @@ public class Agent_P3 extends AbstractDedaleAgent {
     private List<String> openNodes; //Nodes known but no visited
     private Set<String> closedNodes; //Visited node
     private Set<String> well;
-
     public Map<String,String> agents; //other agents, position
 
     protected void setup() {
@@ -398,7 +397,6 @@ public class Agent_P3 extends AbstractDedaleAgent {
 
 
     }
-
     public class RefleshAgents extends TickerBehaviour{
 
         public RefleshAgents(Agent a, long period) {
