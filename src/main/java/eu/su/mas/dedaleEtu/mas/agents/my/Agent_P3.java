@@ -11,12 +11,15 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.SearchConstraints;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import org.omg.CORBA.PUBLIC_MEMBER;
 
 import java.util.*;
 
@@ -28,8 +31,9 @@ public class Agent_P3 extends AbstractDedaleAgent {
     private AID agentBDIAID;
     private List<String> openNodes; //Nodes known but no visited
     private Set<String> closedNodes; //Visited node
-
     private Set<String> well;
+
+    public Map<String,String> agents; //other agents, position
 
     protected void setup() {
         super.setup();
@@ -38,7 +42,7 @@ public class Agent_P3 extends AbstractDedaleAgent {
         String[] myInfo = args[0].toString().split(";");
         name = myInfo[0].split(": ")[1];
         type = myInfo[1].split(": ")[1];
-
+        agents = new HashMap<>();
         openNodes = new ArrayList<>();
         closedNodes = new HashSet<>();
         well = new HashSet<>();
@@ -46,6 +50,8 @@ public class Agent_P3 extends AbstractDedaleAgent {
 
         List lb = new ArrayList<>();
         lb.add(new InitBehaviour(this));
+        lb.add(new ShareInfoBehaviour(this));
+        lb.add(new RefleshAgents(this,1000));
         addBehaviour(new startMyBehaviours(this, lb));
     }
 
@@ -58,7 +64,7 @@ public class Agent_P3 extends AbstractDedaleAgent {
             sd.setType(type);
             dfd.addServices(sd);
             DFService.register(this,dfd);
-            System.out.println("Agent regist");
+            System.out.println(name+" regist");
         } catch (FIPAException e) {
             throw new RuntimeException(e);
         }
@@ -74,6 +80,7 @@ public class Agent_P3 extends AbstractDedaleAgent {
         public void action() {
             Agent_P3 agent = (Agent_P3) myAgent;
             linkAgentBDI(agent);
+            updateAgentList(agent);
             if(agent.map==null) agent.map = new MapRepresentation();
         }
 
@@ -84,10 +91,11 @@ public class Agent_P3 extends AbstractDedaleAgent {
         }
 
         public void linkAgentBDI(Agent_P3 agent){
+            String bdiAgent="BDI_"+name;
             DFAgentDescription template = new DFAgentDescription();
             ServiceDescription templateSd = new ServiceDescription();
             templateSd.setType("AgentExploBDI");
-            templateSd.setName("AgentBDI");
+            templateSd.setName(bdiAgent);
             template.addServices(templateSd);
             DFAgentDescription[] results = new DFAgentDescription[0];
             try {
@@ -99,6 +107,30 @@ public class Agent_P3 extends AbstractDedaleAgent {
                         System.out.println("-----"+myAgent.getLocalName()+" detect "+provider.getLocalName());
                         agent.agentBDIAID = provider;
                         finish=true;
+                    }
+                }
+            } catch (FIPAException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public void updateAgentList(Agent_P3 agent){
+            //ALL Agent
+            DFAgentDescription template = new DFAgentDescription();
+            ServiceDescription templateSd = new ServiceDescription();
+            templateSd.setType("AgentExplo");
+            template.addServices(templateSd);
+            SearchConstraints sc = new SearchConstraints();
+            sc.setMaxResults(10L);
+            DFAgentDescription[] results = new DFAgentDescription[0];
+            try {
+                results = DFService.search(myAgent, template, sc);
+                if (results.length > 0) {
+                    for(DFAgentDescription dfd: results){
+                        AID provider = dfd.getName();
+                        if(provider.getLocalName().equals(agent.getLocalName()))continue;
+                        System.out.println("-----"+myAgent.getLocalName()+" detect "+provider.getLocalName());
+                        agent.agents.put(provider.getLocalName(),"-1");
                     }
                 }
             } catch (FIPAException e) {
@@ -141,8 +173,23 @@ public class Agent_P3 extends AbstractDedaleAgent {
         @Override
         public void action() {
             receiver();
+            inform();
         }
 
+        public void inform(){
+            MessageTemplate msgTemplate = MessageTemplate.and(
+                    MessageTemplate.MatchProtocol("BDI"),
+                    MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+            ACLMessage requestMenssage = myAgent.receive(msgTemplate);
+            if (requestMenssage != null) {
+                if (requestMenssage.getContent() != null) {
+                    String content = requestMenssage.getContent();
+                    if(content.equals("FINISH"))myAgent.doDelete();
+                }
+            }
+
+
+        }
         public void receiver(){
             MessageTemplate msgTemplate = MessageTemplate.and(
                     MessageTemplate.MatchProtocol("BDI"),
@@ -151,41 +198,49 @@ public class Agent_P3 extends AbstractDedaleAgent {
             if (requestMenssage != null) {
                 if (requestMenssage.getContent() != null) {
                     String content = requestMenssage.getContent();
-                    System.out.println("Agent Receive "+content);
+                    System.out.println(name+ " Receive "+content);
                     Boolean correct=true;//TODO
                     if(!correct){
                         ACLMessage refuse = requestMenssage.createReply(ACLMessage.REFUSE);
                         refuse.setContent("NOT VALID");
                         send(refuse);
-                        System.out.println("Agent refuse NOT VALID");
+                        System.out.println(name+ " refuse NOT VALID");
                     }
                     List<String> path =  map.getShortestPath(((Agent_P3)myAgent).getCurrentPosition().toString(),content);
+                    for(String node:path){
+                        if(agents.values().contains(node))path=null;
+                    }
                     if(path!=null){
-                        ACLMessage refuse = requestMenssage.createReply(ACLMessage.AGREE);
-                        //refuse.setContent("AGREE");
-                        send(refuse);
-                        System.out.println("Agent agree");
-                        addBehaviour(new GoPosBehaviour(content));
+                        ACLMessage reply = requestMenssage.createReply(ACLMessage.AGREE);
+                        //reply.setContent("AGREE");
+                        send(reply);
+                        System.out.println(name+ " agree "+content);
+                        addBehaviour(new GoPosBehaviour(content,requestMenssage));
                     }else {
-                        ACLMessage refuse = requestMenssage.createReply(ACLMessage.REFUSE);
-                        refuse.setContent("CANT GO");
-                        send(refuse);
-                        System.out.println("Agent refuse CANT GO");
+                        ACLMessage reply = requestMenssage.createReply(ACLMessage.REFUSE);
+                        reply.setContent(content);
+                        send(reply);
+                        System.out.println(name+" refuse CANT GO "+content);
                     }
                 }
             }
         }
     }
-
     public class GoPosBehaviour extends Behaviour{
 
         private String dest;
         private Boolean finished;
+        private Boolean fail;
+        private String lastPos;
+        private ACLMessage requestMenssage;
 
-        public GoPosBehaviour(String dest) {
+        public GoPosBehaviour(String dest,ACLMessage requestMenssage) {
             super();
             this.dest = dest;
-            finished=false;
+            this.fail=false;
+            this.finished=false;
+            this.lastPos="";
+            this.requestMenssage=requestMenssage;
         }
 
         @Override
@@ -197,6 +252,7 @@ public class Agent_P3 extends AbstractDedaleAgent {
             }
             Agent_P3 agent = (Agent_P3) myAgent;
             String myPosition = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition().toString();
+
             observe(agent, myPosition);
 
             if(myPosition.equals(dest)){
@@ -208,11 +264,18 @@ public class Agent_P3 extends AbstractDedaleAgent {
             List next = agent.map.getShortestPath(myPosition, dest);
             if(next==null || next.isEmpty()){
                 sendFailure("FAIL");
+                fail=true;
                 return;
             }
-            for(Object n:next) System.out.printf(n.toString());
-            nextNode = next.get(0).toString();
 
+            nextNode = next.get(0).toString();
+            if(lastPos==myPosition){
+                sendFailure(nextNode);
+                fail=true;
+                return;
+            }
+
+            lastPos=myPosition;
             agent.moveTo(new gsLocation(nextNode));
         }
 
@@ -266,9 +329,8 @@ public class Agent_P3 extends AbstractDedaleAgent {
             send(msg);
         }
 
-
         public void sendInformDone(){
-            ACLMessage msg = new ACLMessage(ACLMessage.INFORM_IF);
+            ACLMessage msg = this.requestMenssage.createReply(ACLMessage.INFORM_IF);
             msg.setProtocol("BDI");
             msg.setSender(myAgent.getAID());
             msg.addReceiver(agentBDIAID);
@@ -277,7 +339,7 @@ public class Agent_P3 extends AbstractDedaleAgent {
         }
 
         public void sendFailure(String menssage){
-            ACLMessage msg = new ACLMessage(ACLMessage.FAILURE);
+            ACLMessage msg = this.requestMenssage.createReply(ACLMessage.FAILURE);
             msg.setProtocol("BDI");
             msg.setSender(myAgent.getAID());
             msg.addReceiver(agentBDIAID);
@@ -286,8 +348,69 @@ public class Agent_P3 extends AbstractDedaleAgent {
         }
         @Override
         public boolean done() {
-            if (finished)sendInformDone();
-            return finished;
+            if (finished) sendInformDone();
+            return finished || fail;
+        }
+    }
+    public class ShareInfoBehaviour extends CyclicBehaviour {
+
+        public ShareInfoBehaviour(Agent agent) {
+            super(agent);
+        }
+
+        @Override
+        public void action() {
+            Agent_P3 agent = (Agent_P3) myAgent;
+            sendPosition(agent);
+            receive(agent);
+        }
+
+        private void receive(Agent_P3 agent) {
+            MessageTemplate msgTemplate = MessageTemplate.and(
+                    MessageTemplate.MatchProtocol("SHARE-POS"),
+                    MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+            ACLMessage msgReceived = myAgent.receive(msgTemplate);
+            if (msgReceived != null) {
+                if (msgReceived.getContent() != null) {
+                    String[] content = msgReceived.getContent().split(" ");
+
+                    System.out.println("-" + agent.getLocalName() + " - Mensage recived: " +  content[0]+" "+content[1]);
+                    agent.agents.put(content[0],content[1]);
+
+                }
+            }
+        }
+
+
+        private void sendPosition(Agent_P3 agent) {
+            ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+            msg.setProtocol("SHARE-POS");
+            msg.setSender(myAgent.getAID());
+            for (String agentName : agent.agents.keySet()) {
+                if (agentName.equals(myAgent.getLocalName())) continue;
+                msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
+            }
+            String mensage= this.myAgent.getLocalName()+" "+((AbstractDedaleAgent) this.myAgent).getCurrentPosition();
+            msg.setContent(mensage);
+            agent.sendMessage(msg);
+            //System.out.println(agent.getLocalName() + " - Send mensage: " +  mensage);
+        }
+
+
+    }
+
+    public class RefleshAgents extends TickerBehaviour{
+
+        public RefleshAgents(Agent a, long period) {
+            super(a, period);
+        }
+
+        @Override
+        protected void onTick() {
+            Agent_P3 agentP3 = (Agent_P3) myAgent;
+            for(String agent: agentP3.agents.keySet()){
+                agentP3.agents.put(agent,"-1");
+            }
         }
     }
 }

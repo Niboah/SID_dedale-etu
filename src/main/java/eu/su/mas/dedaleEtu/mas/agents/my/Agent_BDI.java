@@ -24,11 +24,12 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import org.apache.jena.atlas.iterator.Iter;
 
 import java.util.*;
 
 public class Agent_BDI extends SingleCapabilityAgent {
-    private enum STATE{SLEEPING, READY, RUNNING, FAIL, FINISH,WAIT}
+    private enum STATE{SLEEPING, READY, RUNNING, FAIL, WAIT,FINISH}
     public static String I_AM_REGISTERED = "IAmRegistered";
     public static String I_KNOW_THE_AGENT = "IKnowTheAgent";
     public static String I_KNOW_ALL_MAP = "IKnowAllMap";
@@ -39,13 +40,11 @@ public class Agent_BDI extends SingleCapabilityAgent {
     private List<String> openNodes; //Nodes known but no visited
     private Set<String> closedNodes; //Visited node
     private Map<String,Map<String,String>> recursos; // Recurso : (Nodo:Quatitat)
-
     private Set<String> pozos;
-
     private Map<Integer,List<Integer>> adjList;
-
     private String goal;
     private String currentNode;
+    public Set<String> failList;
     public Agent_BDI(){
         state = STATE.SLEEPING;
         historial = new ArrayList<>();
@@ -54,7 +53,9 @@ public class Agent_BDI extends SingleCapabilityAgent {
         recursos = new HashMap<>();
         pozos = new HashSet<>();
         adjList = new HashMap<>();
+        failList=new HashSet<>();
         currentNode="";
+        goal="-1";
         // Create initial beliefs
         Belief iAmRegistered = new TransientPredicate(I_AM_REGISTERED, false);
         Belief findAgent = new TransientPredicate(I_KNOW_THE_AGENT, false);
@@ -98,10 +99,10 @@ public class Agent_BDI extends SingleCapabilityAgent {
        enableGoalMonitoring();
 
        // Override BDI cycle meta-functions, if needed
-       //overrideBeliefRevisionStrategy();
-       //overrideOptionGenerationFunction();
-       //overrideDeliberationFunction();
-       //overridePlanSelectionStrategy();
+       overrideBeliefRevisionStrategy();
+       overrideOptionGenerationFunction();
+       overrideDeliberationFunction();
+       overridePlanSelectionStrategy();
    }
     public class RegisterPlanBody extends BeliefGoalPlanBody {
         @Override
@@ -111,7 +112,7 @@ public class Agent_BDI extends SingleCapabilityAgent {
             DFAgentDescription dfd = new DFAgentDescription();
             dfd.setName(agent.getAID());
             ServiceDescription sd = new ServiceDescription();
-            sd.setName("AgentBDI");
+            sd.setName(myAgent.getLocalName());
             sd.setType("AgentExploBDI");
             dfd.addServices(sd);
             try {
@@ -130,10 +131,12 @@ public class Agent_BDI extends SingleCapabilityAgent {
     public class FindAgentPlanBody extends BeliefGoalPlanBody{
         @Override
         public void execute() {
+
+            String agentName =myAgent.getLocalName().substring(4);
             DFAgentDescription template = new DFAgentDescription();
             ServiceDescription templateSd = new ServiceDescription();
             templateSd.setType("agentExplo");
-            templateSd.setName("Agent_P3");
+            templateSd.setName(agentName);
             template.addServices(templateSd);
             DFAgentDescription[] results = new DFAgentDescription[0];
             try {
@@ -155,16 +158,14 @@ public class Agent_BDI extends SingleCapabilityAgent {
     public class UpdateStatePlanBody extends BeliefGoalPlanBody{
         @Override
         public void execute() {
-            receiveRequest();
-            receiveRefuse();
-            receiveAgree();
-            receiveInformDone();
-            receiveFailure();
-            receiveInform();
-            //if(STATE.FINISH==state){
-                //setEndState(Plan.EndState.SUCCESSFUL);
-                getBeliefBase().updateBelief(In_FINISH_STATE, state);
-            //}
+            if(state.equals(STATE.SLEEPING)) receiveRequest();
+            else {
+                receiveRefuse();
+                receiveAgree();
+                receiveInformDone();
+                receiveFailure();
+                receiveInform();
+                getBeliefBase().updateBelief(In_FINISH_STATE, state);}
         }
 
         public ACLMessage receive(int performative){
@@ -177,35 +178,21 @@ public class Agent_BDI extends SingleCapabilityAgent {
         public void receiveRequest(){
             ACLMessage requestMenssage = receive(ACLMessage.REQUEST);
             String content="";
-            if (requestMenssage != null) {
-                if (requestMenssage.getContent() != null) {
-                    content = requestMenssage.getContent();
-                    if(state!=STATE.SLEEPING)return;
-                    state=STATE.READY;
-                    goal=content;
-                    openNodes.add(content);
-                    System.out.println("BDI Receive request "+agentAID+" start in "+content);
-                    historial.add("BDI Receive request "+agentAID+" start in "+content);
-                }
-            }else return;
+            if (requestMenssage == null) return;
+            if (requestMenssage.getContent() == null)  return;
+
+            content = requestMenssage.getContent();
+            goal=content;
+            openNodes.add(content);
+            System.out.println(myAgent.getLocalName()+" Receive request "+agentAID+" start in "+content);
+            historial.add(myAgent.getLocalName()+" Receive request "+agentAID+" start in "+content);
 
             ACLMessage reply = requestMenssage.createReply(ACLMessage.AGREE);
             reply.setContent("AGREE");
             send(reply);
-            System.out.println("BDI agree");
-            historial.add("BDI agree");
-        }
-
-        public void receiveRefuse(){
-            ACLMessage refuseMenssage = receive(ACLMessage.REFUSE);
-            if (refuseMenssage != null) {
-                if (refuseMenssage.getContent() != null) {
-                    String content = refuseMenssage.getContent();
-                    state = STATE.FAIL;
-                    System.out.println("BDI Receive refuse "+content);
-                    historial.add("BDI Receive refuse "+content);
-                }
-            }
+            System.out.println(myAgent.getLocalName()+" agree");
+            historial.add(myAgent.getLocalName()+" agree");
+            state=STATE.READY;
         }
         public void receiveAgree(){
             ACLMessage refuseMenssage = receive(ACLMessage.AGREE);
@@ -213,8 +200,23 @@ public class Agent_BDI extends SingleCapabilityAgent {
                 if (refuseMenssage.getContent() != null) {
                     String content = refuseMenssage.getContent();
                     state = STATE.RUNNING;
-                    System.out.println("BDI Receive agree "+content);
-                    historial.add("BDI Receive agree "+content);
+
+                    System.out.println(myAgent.getLocalName()+" Receive agree "+content);
+                    historial.add(myAgent.getLocalName()+" Receive agree "+content);
+                }
+            }
+        }
+        public void receiveRefuse(){
+            ACLMessage refuseMenssage = receive(ACLMessage.REFUSE);
+            if (refuseMenssage != null) {
+                if (refuseMenssage.getContent() != null) {
+                    String content = refuseMenssage.getContent();
+
+                    System.out.println(myAgent.getLocalName()+" Receive refuse "+content);
+                    historial.add(myAgent.getLocalName()+" Receive refuse "+content);
+
+                    failList.add(content);
+                    state = STATE.FAIL;
                 }
             }
         }
@@ -223,10 +225,18 @@ public class Agent_BDI extends SingleCapabilityAgent {
             if (refuseMenssage != null) {
                 if (refuseMenssage.getContent() != null) {
                     String content = refuseMenssage.getContent();
-                    if(currentNode.equals(goal))state = STATE.READY;
-                    else state=STATE.WAIT;
-                    System.out.println("BDI Receive inform_done "+content);
-                    historial.add("BDI Receive inform_done "+content);
+
+                    System.out.println(myAgent.getLocalName()+ " Receive inform_done "+content);
+                    historial.add(myAgent.getLocalName()+ " Receive inform_done "+content);
+
+                    if(content.equals(goal)){
+                        state=STATE.WAIT;
+                        failList.clear();
+                        if (currentNode.equals(goal)) {
+                            state = STATE.READY;
+                            goal="-1";
+                        }
+                    }
                 }
             }
         }
@@ -235,9 +245,10 @@ public class Agent_BDI extends SingleCapabilityAgent {
             if (refuseMenssage != null) {
                 if (refuseMenssage.getContent() != null) {
                     String content = refuseMenssage.getContent();
+                    failList.add(content);
                     state = STATE.FAIL;
-                    System.out.println("BDI Receive failure "+content);
-                    historial.add("BDI Receive failure "+content);
+                    System.out.println(myAgent.getLocalName()+" Receive failure "+content);
+                    historial.add(myAgent.getLocalName()+" Receive failure "+content);
                 }
             }
         }
@@ -246,9 +257,8 @@ public class Agent_BDI extends SingleCapabilityAgent {
             if (refuseMenssage != null) {
                 if (refuseMenssage.getContent() != null) {
                     String content = refuseMenssage.getContent();
-                    System.out.println("BDI Receiver inform:\n"+content);
-                    historial.add("BDI Receiver inform:\n"+content);
-
+                    System.out.println(myAgent.getLocalName()+" Receiver inform:\n"+content);
+                    historial.add(myAgent.getLocalName()+" Receiver inform:\n"+content);
                     processInfo(content);
                 }
             }
@@ -256,9 +266,9 @@ public class Agent_BDI extends SingleCapabilityAgent {
 
         public void processInfo(String content){
             String [] inform = content.split("\n");
-            currentNode="";
             Boolean nearWell=false;
             List<Integer> nearList=new ArrayList<>();
+            if(inform.length>0) currentNode="";
             for(String nodeInf: inform){
                 String[] c = nodeInf.split(" ");
                 String node = c[0];
@@ -266,65 +276,56 @@ public class Agent_BDI extends SingleCapabilityAgent {
                     currentNode=node;
                     openNodes.remove(node);
                     closedNodes.add(node);
+                    int i=0;
                     for(String e:c){
                         String[] info = e.split(":");
                         String name=info[0];
                         String quantity="0";
-                        if(info.length>1) quantity=info[1];
-                        Map<String,String> recursoNodo;
-                        switch (name){
-                            case "WIND":
-                                nearWell=true;
-                                break;
-                            case "Gold":
 
-                                if(!recursos.containsKey("Gold")) recursoNodo=new HashMap<>();
-                                else recursoNodo = recursos.get("Gold");
-                                recursoNodo.put(node,quantity);
-                                recursos.put("Gold",recursoNodo);
-                                break;
-                            case "Diamond":
-                                if(!recursos.containsKey("Diamond")) recursoNodo=new HashMap<>();
-                                else recursoNodo = recursos.get("Diamond");
-                                recursoNodo.put(node,quantity);
-                                recursos.put("Diamond",recursoNodo);
-                                break;
+                        if(i++>0){
+                            if(info.length>1) quantity=info[1];
+                            Map<String,String> recursoNodo;
+                            if(!recursos.containsKey(name)) recursoNodo=new HashMap<>();
+                            else recursoNodo = recursos.get(name);
+                            recursoNodo.put(node,quantity);
+                            recursos.put(name,recursoNodo);
                         }
+                        if(name.equals("WIND"))nearWell=true;
                     }
                 }else{
                     nearList.add(Integer.parseInt(node));
-                    if (!closedNodes.contains(node)) {
-                        if (!openNodes.contains(node)) {
-                            openNodes.add(node);
-                        }
-                    }
+                    if (!closedNodes.contains(node) && !openNodes.contains(node)) openNodes.add(node);
+
                     for(String e:c){
                         String[] info = e.split(":");
                         String name=info[0];
-                        String quantity="0";
-                        if(info.length>1) quantity=info[1];
-                        switch (name){
-                            case "WIND":
-                                if(nearWell){
-                                    pozos.add(node);
-                                    openNodes.remove(node);
-                                    closedNodes.remove(node);
-                                }
-                                break;
+                        if(name.equals("WIND") && nearWell){
+                            pozos.add(node);
+                            openNodes.remove(node);
+                            closedNodes.remove(node);
                         }
                     }
+
                 }
                 adjList.put(Integer.parseInt(currentNode),nearList);
             }
-            if(currentNode.equals(goal)) state = STATE.READY;
+            if (currentNode.equals(goal)) {
+                state = STATE.READY;
+                goal="-1";
+            }
         }
     }
-
 
     public class ExploreMapPlanBody extends BeliefGoalPlanBody {
         @Override
         public void execute() {
-            switch(state){
+            switch (state){
+                case WAIT:
+                    if (currentNode.equals(goal)) {
+                        state = STATE.READY;
+                        goal="-1";
+                    }
+                    break;
                 case READY:
                     if(openNodes.size()>0){
                         String next=openNodes.get(0);
@@ -337,20 +338,24 @@ public class Agent_BDI extends SingleCapabilityAgent {
                         System.out.println("FINISH");
                         historial.add("FINISH");
 
-                        for(String recursoName: recursos.keySet()){
-                            System.out.println(recursoName);
-                            String text="";
-                            Map<String,String> recurso=recursos.get(recursoName);
-                            for(String node:recurso.keySet())
-                                text+=" "+node+":"+recurso.get(node);
-                            System.out.println(text);
-                        }
+                        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                        msg.setProtocol("BDI");
+                        msg.setSender(myAgent.getAID());
+                        msg.addReceiver(agentAID);
+                        msg.setContent("FINISH");
+                        send(msg);
+
+                        printResult();
+
                         getBeliefBase().updateBelief(I_KNOW_ALL_MAP, true);
-                       // setEndState(Plan.EndState.SUCCESSFUL);
+                        // setEndState(Plan.EndState.SUCCESSFUL);
                     }
                     break;
-                case RUNNING:
-
+                case FAIL:
+                    String next = BFS(Integer.parseInt(currentNode));
+                    goal=next;
+                    request(next);
+                    state=STATE.RUNNING;
                     break;
             }
         }
@@ -362,8 +367,20 @@ public class Agent_BDI extends SingleCapabilityAgent {
             msg.addReceiver(agentAID);
             msg.setContent(node);
             send(msg);
-            System.out.println("BDI send request "+ node);
-            historial.add("BDI send request "+ node);
+            System.out.println(myAgent.getLocalName()+" send request "+ node);
+            historial.add(myAgent.getLocalName()+" send request "+ node);
+        }
+
+        public void printResult(){
+            System.out.println("Result");
+            for(String recursoName: recursos.keySet()){
+                System.out.println(recursoName);
+                String text="";
+                Map<String,String> recurso=recursos.get(recursoName);
+                for(String node:recurso.keySet())
+                    text+=" Nodo "+node+":"+recurso.get(node);
+                System.out.println(text);
+            }
         }
     }
 
@@ -440,8 +457,7 @@ public class Agent_BDI extends SingleCapabilityAgent {
         });
     }
 
-    String BFS(int s)
-    {
+    private String BFS(int s) {
         // Mark all the vertices as not visited(By default
         // set as false)
         boolean visited[] = new boolean[1000];
@@ -462,16 +478,40 @@ public class Agent_BDI extends SingleCapabilityAgent {
             // Get all adjacent vertices of the dequeued
             // vertex s If a adjacent has not been visited,
             // then mark it visited and enqueue it
-            Iterator<Integer> i = adjList.get(s).listIterator();
+            List<Integer> adj =adjList.get(s);
+            if(adj==null)
+                continue;
+            Iterator<Integer> i = adj.listIterator();
             while (i.hasNext()) {
                 int n = i.next();
-                if(openNodes.contains(n+""))return n+"";
+
+                //contains no funciona :c
+                Boolean contain=false;
+                for(String f: failList){
+                    if(f.equals(Integer.toString(n))){
+                        contain = true;
+                        break;
+                    }
+                }
+                if(contain)
+                    continue;
+
                 if (!visited[n]) {
                     visited[n] = true;
                     queue.add(n);
                 }
+
+                if(openNodes.contains(n+""))
+                    return n+"";
             }
         }
-        return s+"";
+        String next ="";
+        for (Iterator<String> iter = closedNodes.iterator(); iter.hasNext(); ) {
+            next = iter.next();
+            if(failList.contains(next))
+                continue;
+            return next;
+        }
+        return next;
     }
 }

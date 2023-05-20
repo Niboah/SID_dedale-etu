@@ -1,11 +1,33 @@
 [
   { 
     "agentType":"agentExplo",
-    "agentName": "Agent_P3",
+    "agentName": "Agent_P3_1",
     "communicationRange": 3,
     "initialLocation": "free",
     "backPackCapacityGold": -1,
     "backPackCapacityDiamond":-1, 
+    "detectionRadius": 0,
+    "strengthExpertise": 1,
+    "lockPickingExpertise":1
+  },
+  {
+    "agentType":"agentExplo",
+    "agentName": "Agent_P3_2",
+    "communicationRange": 3,
+    "initialLocation": "free",
+    "backPackCapacityGold": -1,
+    "backPackCapacityDiamond":-1,
+    "detectionRadius": 0,
+    "strengthExpertise": 1,
+    "lockPickingExpertise":1
+  },
+  {
+    "agentType":"agentExplo",
+    "agentName": "Agent_P3_3",
+    "communicationRange": 3,
+    "initialLocation": "free",
+    "backPackCapacityGold": -1,
+    "backPackCapacityDiamond":-1,
     "detectionRadius": 0,
     "strengthExpertise": 1,
     "lockPickingExpertise":1
