@@ -40,7 +40,6 @@ public class Agent_BDI extends SingleCapabilityAgent {
     private List<String> openNodes; //Nodes known but no visited
     private Set<String> closedNodes; //Visited node
     private Map<String,Map<String,String>> recursos; // Recurso : (Nodo:Quatitat)
-    private Set<String> pozos;
     private Map<Integer,List<Integer>> adjList;
     private String goal;
     private String currentNode;
@@ -51,7 +50,6 @@ public class Agent_BDI extends SingleCapabilityAgent {
         openNodes = new ArrayList<>();
         closedNodes = new HashSet<>();
         recursos = new HashMap<>();
-        pozos = new HashSet<>();
         adjList = new HashMap<>();
         failList=new HashSet<>();
         currentNode="";
@@ -299,7 +297,6 @@ public class Agent_BDI extends SingleCapabilityAgent {
                         String[] info = e.split(":");
                         String name=info[0];
                         if(name.equals("WIND") && nearWell){
-                            pozos.add(node);
                             openNodes.remove(node);
                             closedNodes.remove(node);
                         }
@@ -312,6 +309,11 @@ public class Agent_BDI extends SingleCapabilityAgent {
     }
 
     public class ExploreMapPlanBody extends BeliefGoalPlanBody {
+        int time;
+        public ExploreMapPlanBody(){
+            super();
+            time=0;
+        }
         @Override
         public void execute() {
             switch (state){
@@ -353,6 +355,12 @@ public class Agent_BDI extends SingleCapabilityAgent {
                     request(next);
 
                     break;
+                case RUNNING:
+                    if(time++<100000){
+                        goal="-1";
+                        state=STATE.FAIL;
+                    };
+
             }
         }
 
