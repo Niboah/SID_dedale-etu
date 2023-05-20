@@ -2,15 +2,9 @@ package eu.su.mas.dedaleEtu.mas.agents.my;
 
 import org.apache.commons.compress.utils.Lists;
 import org.apache.jena.ontology.*;
-import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.rdf.model.impl.StatementImpl;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.sparql.core.ResultBinding;
 
 import java.io.*;
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
@@ -333,4 +327,77 @@ public class JenaTester {
             }
         }
     }
+
+
+    String sendPos(String pos) {
+            Model model = ModelFactory.createDefaultModel();
+            Resource messageResource = model.createResource("http://request.com/message");
+            Property nodeProperty = model.createProperty("http://request.com/node");
+
+
+
+            Literal nodeValue = model.createLiteral(pos);
+
+
+            messageResource.addProperty(nodeProperty, nodeValue);
+
+
+
+            StringWriter writer = new StringWriter();
+
+            model.write(writer, "RDF/XML");
+
+            String serializedMessage = writer.toString();
+            return serializedMessage;
+    }
+    String receivePos(String pos) {
+        Model model = ModelFactory.createDefaultModel();
+        model.read(new ByteArrayInputStream(pos.getBytes()), null);
+        Resource messageResource = model.createResource("http://request.com/message");
+        Property nodeProperty = model.createProperty("http://request.com/node");
+
+
+        Literal nodeValue = messageResource.getProperty(nodeProperty).getObject().asLiteral();
+        String node = nodeValue.getString();
+
+        return node;
+    }
+
+    String sendMessage(String message) {
+        Model model = ModelFactory.createDefaultModel();
+        Resource messageResource = model.createResource("http://request.com/message");
+        Property nodeProperty = model.createProperty("http://request.com/content");
+
+
+
+        Literal nodeValue = model.createLiteral(message);
+
+
+        messageResource.addProperty(nodeProperty, nodeValue);
+
+
+
+        StringWriter writer = new StringWriter();
+
+        model.write(writer, "RDF/XML");
+
+        String serializedMessage = writer.toString();
+        return serializedMessage;
+    }
+
+    String receiveMessage(String message) {
+        Model model = ModelFactory.createDefaultModel();
+        model.read(new ByteArrayInputStream(message.getBytes()), null);
+        Resource messageResource = model.createResource("http://request.com/message");
+        Property nodeProperty = model.createProperty("http://request.com/content");
+
+
+        Literal nodeValue = messageResource.getProperty(nodeProperty).getObject().asLiteral();
+        String content = nodeValue.getString();
+
+        return content;
+    }
+
+
+
 }
