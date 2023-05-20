@@ -252,9 +252,6 @@ public class Agent_P3 extends AbstractDedaleAgent {
                 content+=node;
                 for(Couple<Observation, Integer> c : lob.getRight())
                     content+= " "+c.getLeft().toString()+":"+c.getRight();
-
-
-
                 content+="\n";
             }
             sendObserve(content);
