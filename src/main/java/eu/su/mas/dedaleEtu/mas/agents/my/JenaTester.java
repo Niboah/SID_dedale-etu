@@ -329,51 +329,19 @@ public class JenaTester {
     }
 
 
-    String sendPos(String pos) {
-            Model model = ModelFactory.createDefaultModel();
-            Resource messageResource = model.createResource("http://request.com/message");
-            Property nodeProperty = model.createProperty("http://request.com/node");
 
-
-
-            Literal nodeValue = model.createLiteral(pos);
-
-
-            messageResource.addProperty(nodeProperty, nodeValue);
-
-
-
-            StringWriter writer = new StringWriter();
-
-            model.write(writer, "RDF/XML");
-
-            String serializedMessage = writer.toString();
-            return serializedMessage;
-    }
-    String receivePos(String pos) {
-        Model model = ModelFactory.createDefaultModel();
-        model.read(new ByteArrayInputStream(pos.getBytes()), null);
-        Resource messageResource = model.createResource("http://request.com/message");
-        Property nodeProperty = model.createProperty("http://request.com/node");
-
-
-        Literal nodeValue = messageResource.getProperty(nodeProperty).getObject().asLiteral();
-        String node = nodeValue.getString();
-
-        return node;
-    }
 
     String sendMessage(String message) {
         Model model = ModelFactory.createDefaultModel();
         Resource messageResource = model.createResource("http://request.com/message");
-        Property nodeProperty = model.createProperty("http://request.com/content");
+        Property contentProperty = model.createProperty("http://request.com/content");
 
 
 
         Literal nodeValue = model.createLiteral(message);
 
 
-        messageResource.addProperty(nodeProperty, nodeValue);
+        messageResource.addProperty(contentProperty, nodeValue);
 
 
 
@@ -389,14 +357,86 @@ public class JenaTester {
         Model model = ModelFactory.createDefaultModel();
         model.read(new ByteArrayInputStream(message.getBytes()), null);
         Resource messageResource = model.createResource("http://request.com/message");
-        Property nodeProperty = model.createProperty("http://request.com/content");
+        Property contentProperty = model.createProperty("http://request.com/content");
 
 
-        Literal nodeValue = messageResource.getProperty(nodeProperty).getObject().asLiteral();
-        String content = nodeValue.getString();
+        Literal contentValue = messageResource.getProperty(contentProperty).getObject().asLiteral();
+        String content = contentValue.getString();
 
         return content;
     }
+/*
+    incomplet per enviar informacions dels nodos
+ */
+    String sendInform(String inform) {
+        Model model = ModelFactory.createDefaultModel();
+        Property lockerOpenPropiedad = model.createProperty("http://request.org/lockOpen");
+        Property lockerPickingPropiedad = model.createProperty("http://request.org/lockPicking");
+        Property strengthPropiedad = model.createProperty("http://request.org/strength");
+        Property hasObject=model.createProperty("http://request.org/hasObject");
+        String [] content = inform.split("\n");
+        for (String s : content) {
+            System.out.println(s);
+            String[] c = s.split(" ");
+            Resource nodo=model.createResource("http://request.org/"+c[0]);
+
+            Resource object;
+            if (c.length==1) {
+                object=model.createResource("http://request.org/noObjeto");
+                model.add(nodo,hasObject,object);
+                continue;
+            }
+            object= model.createResource("http://request.org/"+c[1]);
+
+            if (c[1].contains("WIND")) {
+
+                model.add(nodo,hasObject,object);
+                continue;
+            }
+            object.addProperty(lockerOpenPropiedad,c[2]);
+            object.addProperty(lockerPickingPropiedad,c[3]);
+            object.addProperty(strengthPropiedad,c[4]);
+            model.add(nodo,hasObject,object);
+
+        }
+        StringWriter writer = new StringWriter();
+
+        model.write(writer, "RDF/XML");
+
+        String informSerilizat = writer.toString();
+        return informSerilizat;
+    }
+
+    String receiveInform(String informSeriarizat) {
+        Model model = ModelFactory.createDefaultModel();
+        model.read(new ByteArrayInputStream(informSeriarizat.getBytes()), null);
+        StmtIterator iter = model.listStatements();
+        while (iter.hasNext()) {
+            Statement stmt = iter.nextStatement();
+            Resource sujeto = stmt.getSubject();
+            Property predicado = stmt.getPredicate();
+            RDFNode objeto = stmt.getObject();
+
+            // Hacer algo con los recursos y propiedades
+            System.out.println("Sujeto: " + sujeto.toString());
+            System.out.println("Predicado: " + predicado.toString());
+            System.out.println("Objeto: " + objeto.toString());
+            Property open=model.getProperty("http://request.org/lockOpen");
+            if (!objeto.toString().contains("noObjeto")) {
+                Resource value=objeto.asResource().getPropertyResourceValue(open);
+                System.out.println(value.toString());
+            }
+        }
+
+
+
+
+
+        String inform="";
+
+        return inform;
+    }
+
 
 
 

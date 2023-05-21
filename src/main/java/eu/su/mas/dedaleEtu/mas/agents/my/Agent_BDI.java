@@ -4,13 +4,12 @@ import bdi4jade.belief.Belief;
 import bdi4jade.belief.TransientBelief;
 import bdi4jade.belief.TransientPredicate;
 import bdi4jade.core.GoalUpdateSet;
+import bdi4jade.core.SingleCapabilityAgent;
 import bdi4jade.event.GoalEvent;
 import bdi4jade.event.GoalListener;
 import bdi4jade.goal.*;
-import bdi4jade.plan.Plan;
-import bdi4jade.core.SingleCapabilityAgent;
 import bdi4jade.plan.DefaultPlan;
-
+import bdi4jade.plan.Plan;
 import bdi4jade.plan.planbody.BeliefGoalPlanBody;
 import bdi4jade.reasoning.DefaultBeliefRevisionStrategy;
 import bdi4jade.reasoning.DefaultDeliberationFunction;
@@ -24,7 +23,6 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import org.apache.jena.atlas.iterator.Iter;
 
 import java.util.*;
 
@@ -44,8 +42,11 @@ public class Agent_BDI extends SingleCapabilityAgent {
     private String goal;
     private String currentNode;
     public Set<String> failList;
+
+    private static JenaTester jena;
     public Agent_BDI(){
         state = STATE.SLEEPING;
+        jena=new JenaTester("");
         historial = new ArrayList<>();
         openNodes = new ArrayList<>();
         closedNodes = new HashSet<>();
@@ -179,13 +180,13 @@ public class Agent_BDI extends SingleCapabilityAgent {
             if (requestMenssage == null) return;
             if (requestMenssage.getContent() == null)  return;
 
-            content = requestMenssage.getContent();
+            content = jena.receiveMessage(requestMenssage.getContent());
             openNodes.add(content);
             System.out.println(myAgent.getLocalName()+" Receive request "+agentAID+" start in "+content);
             historial.add(myAgent.getLocalName()+" Receive request "+agentAID+" start in "+content);
 
             ACLMessage reply = requestMenssage.createReply(ACLMessage.AGREE);
-            reply.setContent("AGREE");
+            reply.setContent(jena.sendMessage("AGREE"));
             send(reply);
             System.out.println(myAgent.getLocalName()+" agree");
             historial.add(myAgent.getLocalName()+" agree");
@@ -206,7 +207,7 @@ public class Agent_BDI extends SingleCapabilityAgent {
             ACLMessage refuseMenssage = receive(ACLMessage.REFUSE);
             if (refuseMenssage != null) {
                 if (refuseMenssage.getContent() != null) {
-                    String content = refuseMenssage.getContent();
+                    String content = jena.receiveMessage(refuseMenssage.getContent());
 
                     System.out.println(myAgent.getLocalName()+" Receive refuse "+content);
                     historial.add(myAgent.getLocalName()+" Receive refuse "+content);
@@ -220,7 +221,7 @@ public class Agent_BDI extends SingleCapabilityAgent {
             ACLMessage refuseMenssage = receive(ACLMessage.INFORM_IF);
             if (refuseMenssage != null) {
                 if (refuseMenssage.getContent() != null) {
-                    String content = refuseMenssage.getContent();
+                    String content = jena.receiveMessage(refuseMenssage.getContent());
 
                     System.out.println(myAgent.getLocalName()+ " Receive inform_done "+content);
                     historial.add(myAgent.getLocalName()+ " Receive inform_done "+content);
@@ -240,7 +241,7 @@ public class Agent_BDI extends SingleCapabilityAgent {
             ACLMessage refuseMenssage = receive(ACLMessage.FAILURE);
             if (refuseMenssage != null) {
                 if (refuseMenssage.getContent() != null) {
-                    String content = refuseMenssage.getContent();
+                    String content = jena.receiveMessage(refuseMenssage.getContent());
                     failList.add(content);
                     goal="-1";
                     state = STATE.FAIL;
@@ -253,15 +254,17 @@ public class Agent_BDI extends SingleCapabilityAgent {
             ACLMessage refuseMenssage = receive(ACLMessage.INFORM);
             if (refuseMenssage != null) {
                 if (refuseMenssage.getContent() != null) {
-                    String content = refuseMenssage.getContent();
+                    String content = jena.receiveMessage(refuseMenssage.getContent());
                     System.out.println(myAgent.getLocalName()+" Receiver inform:\n"+content);
                     historial.add(myAgent.getLocalName()+" Receiver inform:\n"+content);
+
                     processInfo(content);
                 }
             }
         }
 
         public void processInfo(String content){
+            System.out.println(content);
             String [] inform = content.split("\n");
             Boolean nearWell=false;
             List<Integer> nearList=new ArrayList<>();
@@ -339,7 +342,7 @@ public class Agent_BDI extends SingleCapabilityAgent {
                         msg.setProtocol("BDI");
                         msg.setSender(myAgent.getAID());
                         msg.addReceiver(agentAID);
-                        msg.setContent("FINISH");
+                        msg.setContent(jena.sendMessage("FINISH"));
                         send(msg);
 
                         printResult();
@@ -360,6 +363,7 @@ public class Agent_BDI extends SingleCapabilityAgent {
                         goal="-1";
                         state=STATE.FAIL;
                     };
+                    break;
 
             }
         }
@@ -369,7 +373,7 @@ public class Agent_BDI extends SingleCapabilityAgent {
             msg.setProtocol("BDI");
             msg.setSender(myAgent.getAID());
             msg.addReceiver(agentAID);
-            msg.setContent(node);
+            msg.setContent(jena.sendMessage(node));
             send(msg);
             System.out.println(myAgent.getLocalName()+" send request "+ node);
             historial.add(myAgent.getLocalName()+" send request "+ node);
