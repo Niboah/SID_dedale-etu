@@ -32,10 +32,8 @@ public class Agent_P3 extends AbstractDedaleAgent {
     private Set<String> closedNodes; //Visited node
     private Set<String> well;
     public Map<String,String> agents; //other agents, position
-    private static JenaTester jena;
     protected void setup() {
         super.setup();
-        jena=new JenaTester("");
         Object[] args = getArguments();
         String[] myInfo = args[0].toString().split(";");
         name = myInfo[0].split(": ")[1];
@@ -146,7 +144,7 @@ public class Agent_P3 extends AbstractDedaleAgent {
             msg.setProtocol("BDI");
             msg.setSender(myAgent.getAID());
             msg.addReceiver(agentBDIAID);
-            msg.setContent(jena.sendMessage(currentPosition));
+            msg.setContent(currentPosition);
             send(msg);
 
             MessageTemplate msgTemplate = MessageTemplate.and(
@@ -155,7 +153,7 @@ public class Agent_P3 extends AbstractDedaleAgent {
             ACLMessage requestMenssage = myAgent.receive(msgTemplate);
             if (requestMenssage != null) {
                 if (requestMenssage.getContent() != null) {
-                    String content = jena.receiveMessage(requestMenssage.getContent());
+                    String content = requestMenssage.getContent();
                     finish=true;
                 }
             }
@@ -181,7 +179,7 @@ public class Agent_P3 extends AbstractDedaleAgent {
             ACLMessage requestMenssage = myAgent.receive(msgTemplate);
             if (requestMenssage != null) {
                 if (requestMenssage.getContent() != null) {
-                    String content = jena.receiveMessage(requestMenssage.getContent());
+                    String content = requestMenssage.getContent();
                     if(content.equals("FINISH"))myAgent.doDelete();
                 }
             }
@@ -195,12 +193,12 @@ public class Agent_P3 extends AbstractDedaleAgent {
             ACLMessage requestMenssage = myAgent.receive(msgTemplate);
             if (requestMenssage != null) {
                 if (requestMenssage.getContent() != null) {
-                    String content = jena.receiveMessage(requestMenssage.getContent());
+                    String content = requestMenssage.getContent();
                     System.out.println(name+ " Receive "+content);
                     Boolean correct=true;//TODO
                     if(!correct){
                         ACLMessage refuse = requestMenssage.createReply(ACLMessage.REFUSE);
-                        refuse.setContent(jena.sendMessage("NOT VALID"));
+                        refuse.setContent("NOT VALID");
                         send(refuse);
                         System.out.println(name+ " refuse NOT VALID");
                     }
@@ -216,7 +214,7 @@ public class Agent_P3 extends AbstractDedaleAgent {
                         addBehaviour(new GoPosBehaviour(content,requestMenssage));
                     }else {
                         ACLMessage reply = requestMenssage.createReply(ACLMessage.REFUSE);
-                        reply.setContent(jena.sendMessage(content));
+                        reply.setContent(content);
                         send(reply);
                         System.out.println(name+" refuse CANT GO "+content);
                     }
@@ -323,7 +321,7 @@ public class Agent_P3 extends AbstractDedaleAgent {
             msg.setProtocol("BDI");
             msg.setSender(myAgent.getAID());
             msg.addReceiver(agentBDIAID);
-            msg.setContent(jena.sendMessage(content));
+            msg.setContent(content);
             send(msg);
         }
 
@@ -332,7 +330,7 @@ public class Agent_P3 extends AbstractDedaleAgent {
             msg.setProtocol("BDI");
             msg.setSender(myAgent.getAID());
             msg.addReceiver(agentBDIAID);
-            msg.setContent(jena.sendMessage(dest));
+            msg.setContent(dest);
             send(msg);
         }
 
@@ -341,7 +339,7 @@ public class Agent_P3 extends AbstractDedaleAgent {
             msg.setProtocol("BDI");
             msg.setSender(myAgent.getAID());
             msg.addReceiver(agentBDIAID);
-            msg.setContent(jena.sendMessage(menssage));
+            msg.setContent(menssage);
             send(msg);
         }
         @Override
@@ -370,7 +368,7 @@ public class Agent_P3 extends AbstractDedaleAgent {
             ACLMessage msgReceived = myAgent.receive(msgTemplate);
             if (msgReceived != null) {
                 if (msgReceived.getContent() != null) {
-                    String[] content = jena.receiveMessage(msgReceived.getContent()).split(" ");
+                    String[] content = msgReceived.getContent().split(" ");
 
                     System.out.println("-" + agent.getLocalName() + " - Mensage recived: " +  content[0]+" "+content[1]);
                     agent.agents.put(content[0],content[1]);
@@ -389,7 +387,7 @@ public class Agent_P3 extends AbstractDedaleAgent {
                 msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
             }
             String mensage= this.myAgent.getLocalName()+" "+((AbstractDedaleAgent) this.myAgent).getCurrentPosition();
-            msg.setContent(jena.sendMessage(mensage));
+            msg.setContent(mensage);
             agent.sendMessage(msg);
             //System.out.println(agent.getLocalName() + " - Send mensage: " +  mensage);
         }
