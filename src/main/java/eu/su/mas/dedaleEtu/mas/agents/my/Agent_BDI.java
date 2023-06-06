@@ -15,6 +15,8 @@ import bdi4jade.reasoning.DefaultBeliefRevisionStrategy;
 import bdi4jade.reasoning.DefaultDeliberationFunction;
 import bdi4jade.reasoning.DefaultOptionGenerationFunction;
 import bdi4jade.reasoning.DefaultPlanSelectionStrategy;
+import dataStructures.MapOfMap;
+import dataStructures.tuple.Couple;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.domain.DFService;
@@ -27,70 +29,110 @@ import jade.lang.acl.MessageTemplate;
 import java.util.*;
 
 public class Agent_BDI extends SingleCapabilityAgent {
-    private enum STATE{SLEEPING, READY, RUNNING, FAIL, WAIT,FINISH}
-    public static String I_AM_REGISTERED = "IAmRegistered";
-    public static String I_KNOW_THE_AGENT = "IKnowTheAgent";
-    public static String I_KNOW_ALL_MAP = "IKnowAllMap";
-    public static String In_FINISH_STATE = "InFinishSte";
+    public static String BDI_MESSAGE_PROTOCOL="BDI10";
+    private static String BDI_DF_TYPE="AgentBDI10";
+    private static String AGENT_NAME="AGENT10";
+    private static String SITUATED_DF_TYPE ="Situated";
+    public enum STATE{SLEEPING, READY, RUNNING, FAIL, WAIT,FINISH,COLLECT}
+    public enum AGENT_TYPE{EXPLO,COLLECT,TANKER}
+    private static String I_AM_REGISTERED = "IAmRegistered";
+    private static String I_KNOW_THE_AGENT = "IKnowTheAgent";
+    private static String I_KNOW_ALL_MAP = "IKnowAllMap";
+    private static String I_KNOW_INFO = "IKnowInfo";
+    private static String IN_FINISH_STATE = "InFinishState";
+    private static String I_COLLECT = "IAmCollecting";
     private AID agentAID;
-    private List<String> historial;
-    private STATE state;
+    public STATE state;
+    private AGENT_TYPE agent_type;
     private List<String> openNodes; //Nodes known but no visited
     private Set<String> closedNodes; //Visited node
-    private Map<String,Map<String,String>> recursos; // Recurso : (Nodo:Quatitat)
+    private Queue<String> resourceNodes;
+    private Map<String,Map<String,String>> recursos; // Nodo : (Recurso:Quatitat)
     private Map<Integer,List<Integer>> adjList;
     private String goal;
     private String currentNode;
-    public Set<String> failList;
+    private Set<String> failList;
+    private Boolean goCollect = false;
+    private String tresureType;
 
     public Agent_BDI(){
-        state = STATE.SLEEPING;
-        historial = new ArrayList<>();
+
         openNodes = new ArrayList<>();
         closedNodes = new HashSet<>();
         recursos = new HashMap<>();
         adjList = new HashMap<>();
         failList=new HashSet<>();
-        currentNode="";
+        resourceNodes = new LinkedList<>();
+
         goal="-1";
+        state = STATE.SLEEPING;
+
         // Create initial beliefs
         Belief iAmRegistered = new TransientPredicate(I_AM_REGISTERED, false);
         Belief findAgent = new TransientPredicate(I_KNOW_THE_AGENT, false);
         Belief iKnowAllMap = new TransientPredicate(I_KNOW_ALL_MAP, false);
-        Belief iUpdateMyState = new TransientBelief(In_FINISH_STATE, state);
+        Belief iKonwInfo = new TransientPredicate(I_KNOW_INFO,false);
+        Belief iUpdateMyState = new TransientBelief(IN_FINISH_STATE, state);
+        Belief iCollect = new TransientPredicate(I_COLLECT,false);
+
         // Add initial desires
         Goal registerGoal = new PredicateGoal(I_AM_REGISTERED, true);
         addGoal(registerGoal);
         Goal findAgentGoal = new PredicateGoal(I_KNOW_THE_AGENT,true);
         addGoal(findAgentGoal);
+
         Goal exploreGoal = new PredicateGoal(I_KNOW_ALL_MAP,true);
         addGoal(exploreGoal);
-        Goal updateStateGoal = new BeliefValueGoal(In_FINISH_STATE,STATE.FINISH);
+
+        Goal getInfoGoal  = new PredicateGoal(I_KNOW_INFO,true);
+        addGoal(getInfoGoal);
+
+        Goal updateStateGoal = new BeliefValueGoal(IN_FINISH_STATE,STATE.FINISH);
         addGoal(updateStateGoal);
+
+        Goal collectGoal = new PredicateGoal(I_COLLECT, true);
+        addGoal(collectGoal);
 
        // Declare goal templates
        GoalTemplate registerGoalTemplate = matchesGoal(registerGoal);
        GoalTemplate findAgentGoalTemplate = matchesGoal(findAgentGoal);
+
+       GoalTemplate collectGoalTemplate = matchesGoal(collectGoal);
        GoalTemplate exploreGoalTemplate = matchesGoal(exploreGoal);
+
        GoalTemplate updateStateGoalTemplate = matchesGoal(updateStateGoal);
+
+       GoalTemplate getInfoGoalTemplate = matchesGoal(getInfoGoal);
 
        // Assign plan bodies to goals
        Plan registerPlan = new DefaultPlan(registerGoalTemplate, RegisterPlanBody.class);
        Plan findAgentPlan = new DefaultPlan(findAgentGoalTemplate,FindAgentPlanBody.class);
+
+       Plan collectPlan = new DefaultPlan(collectGoalTemplate, CollectAllPlanBody.class);
        Plan explorePlan = new DefaultPlan(exploreGoalTemplate,ExploreMapPlanBody.class);
+
        Plan updateStatePlan = new DefaultPlan(updateStateGoalTemplate, UpdateStatePlanBody.class);
 
-       // Init plan library
+       Plan reciveInfoPlan = new DefaultPlan(getInfoGoalTemplate,ReciveInformPlanBody.class);
+
+        // Init plan library
        getCapability().getPlanLibrary().addPlan(registerPlan);
        getCapability().getPlanLibrary().addPlan(findAgentPlan);
+
+       getCapability().getPlanLibrary().addPlan(collectPlan);
        getCapability().getPlanLibrary().addPlan(explorePlan);
+
        getCapability().getPlanLibrary().addPlan(updateStatePlan);
+
+       getCapability().getPlanLibrary().addPlan(reciveInfoPlan);
 
        // Init belief base
        getCapability().getBeliefBase().addBelief(iAmRegistered);
        getCapability().getBeliefBase().addBelief(findAgent);
-        getCapability().getBeliefBase().addBelief(iKnowAllMap);
-        getCapability().getBeliefBase().addBelief(iUpdateMyState);
+       getCapability().getBeliefBase().addBelief(iKnowAllMap);
+       getCapability().getBeliefBase().addBelief(iCollect);
+       getCapability().getBeliefBase().addBelief(iUpdateMyState);
+       getCapability().getBeliefBase().addBelief(iKonwInfo);
 
        // Add a goal listener to track events
        enableGoalMonitoring();
@@ -110,39 +152,36 @@ public class Agent_BDI extends SingleCapabilityAgent {
             dfd.setName(agent.getAID());
             ServiceDescription sd = new ServiceDescription();
             sd.setName(myAgent.getLocalName());
-            sd.setType("AgentExploBDI");
+            sd.setType(BDI_DF_TYPE);
             dfd.addServices(sd);
             try {
                 DFService.register(this.myAgent, dfd);
                 getBeliefBase().updateBelief(I_AM_REGISTERED, true);
-                // This is valid but redundant
-                // (because the goal implementation will check the belief anyway):
-                //setEndState(Plan.EndState.SUCCESSFUL);
             } catch (FIPAException e) {
                 setEndState(Plan.EndState.FAILED);
                 e.printStackTrace();
             }
         }
     }
-
     public class FindAgentPlanBody extends BeliefGoalPlanBody{
         @Override
         public void execute() {
-
-            String agentName =myAgent.getLocalName().substring(4);
             DFAgentDescription template = new DFAgentDescription();
             ServiceDescription templateSd = new ServiceDescription();
-            templateSd.setType("agentExplo");
+            templateSd.setType(SITUATED_DF_TYPE);
+
+            //Todo
+            //templateSd.setName(AGENT_NAME);
+            String agentName =myAgent.getLocalName().substring(4);
             templateSd.setName(agentName);
+
             template.addServices(templateSd);
-            DFAgentDescription[] results = new DFAgentDescription[0];
             try {
-                results = DFService.search(myAgent, template);
+                DFAgentDescription[] results = DFService.search(myAgent, template);
                 if (results.length > 0) {
                     for(DFAgentDescription dfd: results){
                         agentAID = dfd.getName();
                         System.out.println("-----"+myAgent.getLocalName()+" detect "+agentAID.getLocalName());
-                        historial.add(myAgent.getLocalName()+" detect "+agentAID.getLocalName());
                         getBeliefBase().updateBelief(I_KNOW_THE_AGENT, true);
                     }
                 }
@@ -151,126 +190,321 @@ public class Agent_BDI extends SingleCapabilityAgent {
             }
         }
     }
-
     public class UpdateStatePlanBody extends BeliefGoalPlanBody{
         @Override
         public void execute() {
-            if(state.equals(STATE.SLEEPING)) receiveRequest();
-            else {
-                receiveRefuse();
-                receiveAgree();
-                receiveInformDone();
-                receiveFailure();
-                receiveInform();
-                getBeliefBase().updateBelief(In_FINISH_STATE, state);}
-        }
+            receiveRequest();
+            receiveRefuse();
+            receiveAgree();
+            receiveInformDone();
+            receiveFailure();
+            getBeliefBase().updateBelief(IN_FINISH_STATE, state);}
 
-        public ACLMessage receive(int performative){
+        private ACLMessage receive(int performative){
             MessageTemplate msgTemplate = MessageTemplate.and(
-                    MessageTemplate.MatchProtocol("BDI"),
+                    MessageTemplate.MatchProtocol(BDI_MESSAGE_PROTOCOL),
                     MessageTemplate.MatchPerformative(performative));
             return myAgent.receive(msgTemplate);
         }
-
-        public void receiveRequest(){
+        private void receiveRequest(){
             ACLMessage requestMenssage = receive(ACLMessage.REQUEST);
-            String content="";
+            String[] content; //InitPos:AgentType:TresureType
             if (requestMenssage == null) return;
             if (requestMenssage.getContent() == null)  return;
 
-            content = requestMenssage.getContent();
-            openNodes.add(content);
-            System.out.println(myAgent.getLocalName()+" Receive request "+agentAID+" start in "+content);
-            historial.add(myAgent.getLocalName()+" Receive request "+agentAID+" start in "+content);
+            content = requestMenssage.getContent().split(":");
+
+            if(!state.equals(STATE.SLEEPING)) return;
+
+            tresureType=content[2];
+            switch (content[1]){
+                case "AgentExplo":
+                    agent_type = AGENT_TYPE.EXPLO;
+                    getBeliefBase().updateBelief(I_COLLECT, true);
+                    break;
+                case "AgentCollect":
+                    agent_type = AGENT_TYPE.COLLECT;
+                    getBeliefBase().updateBelief(I_KNOW_ALL_MAP, true);
+                    break;
+                case "AgentTanker":
+                    agent_type = AGENT_TYPE.TANKER;
+                    getBeliefBase().updateBelief(I_KNOW_ALL_MAP, true);
+                    getBeliefBase().updateBelief(I_COLLECT, true);
+                    break;
+            }
+            openNodes.add(content[0]);
+            System.out.println(myAgent.getLocalName()+" Receive request "+agentAID+" start in "+content[0]+" "+content[1]+" "+content[2]);
 
             ACLMessage reply = requestMenssage.createReply(ACLMessage.AGREE);
             reply.setContent("AGREE");
             send(reply);
             System.out.println(myAgent.getLocalName()+" agree");
-            historial.add(myAgent.getLocalName()+" agree");
-            state=STATE.READY;
+
+            stateREADY();
         }
-        public void receiveAgree(){
+        private void receiveAgree(){
             ACLMessage refuseMenssage = receive(ACLMessage.AGREE);
             if (refuseMenssage != null) {
                 if (refuseMenssage.getContent() != null) {
                     String content = refuseMenssage.getContent();
-                    state = STATE.RUNNING;
                     System.out.println(myAgent.getLocalName()+" Receive agree "+content);
-                    historial.add(myAgent.getLocalName()+" Receive agree "+content);
+                    state = STATE.RUNNING;
                 }
             }
         }
-        public void receiveRefuse(){
+        private void receiveRefuse(){
             ACLMessage refuseMenssage = receive(ACLMessage.REFUSE);
             if (refuseMenssage != null) {
                 if (refuseMenssage.getContent() != null) {
                     String content = refuseMenssage.getContent();
-
                     System.out.println(myAgent.getLocalName()+" Receive refuse "+content);
-                    historial.add(myAgent.getLocalName()+" Receive refuse "+content);
-                    goal="-1";
-                    failList.add(content);
-                    state = STATE.FAIL;
+
+                    stateFAIL(content);
                 }
             }
         }
-        public void receiveInformDone(){
-            ACLMessage refuseMenssage = receive(ACLMessage.INFORM_IF);
+        private void receiveInformDone(){
+            ACLMessage refuseMenssage = receive(ACLMessage.CONFIRM);
             if (refuseMenssage != null) {
                 if (refuseMenssage.getContent() != null) {
                     String content = refuseMenssage.getContent();
 
                     System.out.println(myAgent.getLocalName()+ " Receive inform_done "+content);
-                    historial.add(myAgent.getLocalName()+ " Receive inform_done "+content);
+                    switch (agent_type){
+                        case EXPLO:
+                            if(content.equals(goal)){
+                                state=STATE.WAIT;
+                                failList.clear();
+                                if (currentNode!=null && currentNode.equals(goal))
+                                    stateREADY();
+                            }
+                            break;
+                        case COLLECT:
 
-                    if(content.equals(goal)){
-                        state=STATE.WAIT;
-                        failList.clear();
-                        if (currentNode.equals(goal)) {
-                            state = STATE.READY;
-                            goal="-1";
-                        }
+                            if(content.equals(goal)){
+                                if(goCollect) state= STATE.COLLECT;
+                                else state = STATE.WAIT;
+                                failList.clear();
+                            }else if(content.contains("TAKE"))
+                                stateREADY();
+
+                            break;
+                        case TANKER:
+                            break;
                     }
+
                 }
             }
         }
-        public void receiveFailure(){
+        private void receiveFailure(){
             ACLMessage refuseMenssage = receive(ACLMessage.FAILURE);
             if (refuseMenssage != null) {
                 if (refuseMenssage.getContent() != null) {
                     String content = refuseMenssage.getContent();
-                    failList.add(content);
-                    goal="-1";
-                    state = STATE.FAIL;
                     System.out.println(myAgent.getLocalName()+" Receive failure "+content);
-                    historial.add(myAgent.getLocalName()+" Receive failure "+content);
+
+                    stateFAIL(content);
                 }
             }
         }
-        public void receiveInform(){
-            ACLMessage refuseMenssage = receive(ACLMessage.INFORM);
+    }
+    public class ExploreMapPlanBody extends BeliefGoalPlanBody {
+        int time;
+        public ExploreMapPlanBody(){
+            super();
+            time=0;
+        }
+        @Override
+        public void execute() {
+            switch (state){
+                case WAIT:
+                    time=0;
+                    if (currentNode!=null && currentNode.equals(goal))
+                        stateREADY();
+                    break;
+                case READY:
+                    time=0;
+                    if(openNodes.size()>0){
+                        if(goal!="-1")break;
+                        String next=openNodes.get(0);
+                        if(currentNode!=null) next = BFS(Integer.parseInt(currentNode));
+                        goal=next;
+                        request(next);
+                    }else if(openNodes.isEmpty()){
+                        if(!resourceNodes.isEmpty()){
+                            if (goal != "-1") break;
+                            String next = resourceNodes.poll();
+                            resourceNodes.add(next);
+                            goal = next;
+                            request(next);
+                        }else{
+                            state=STATE.FINISH;
+                            System.out.println("FINISH");
+
+                            getBeliefBase().updateBelief(I_KNOW_ALL_MAP, true);
+                            // setEndState(Plan.EndState.SUCCESSFUL);
+                        }
+
+                    }
+                    break;
+                case FAIL:
+                    time=0;
+                    if(goal!="-1")break;
+                    if(currentNode==null)break;
+                    String next = BFS(Integer.parseInt(currentNode));
+                    goal=next;
+                    request(next);
+                    break;
+                case RUNNING:
+                    if(time++>900000000)
+                       stateFAIL(goal);
+                    break;
+            }
+        }
+
+        public void request(String node){
+            ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+            msg.setProtocol(BDI_MESSAGE_PROTOCOL);
+            msg.setSender(myAgent.getAID());
+            msg.addReceiver(agentAID);
+            msg.setContent(node);
+            send(msg);
+            System.out.println(myAgent.getLocalName()+" send request "+ node);
+        }
+
+
+    }
+    private String BFS(int s) {
+        // Mark all the vertices as not visited(By default
+        // set as false)
+        boolean visited[] = new boolean[1000];
+
+        LinkedList<Integer> queue = new LinkedList<Integer>();
+
+        visited[s] = true;
+        queue.add(s);
+
+        while (queue.size() != 0) {
+
+            s = queue.poll();
+            System.out.print(s + " ");
+
+            List<Integer> adj = adjList.get(s);
+            if(adj==null) continue;
+            Iterator<Integer> i = adj.listIterator();
+            while (i.hasNext()) {
+                int n = i.next();
+
+                if(failList.contains(n+""))
+                    continue;
+
+                if (!visited[n]) {
+                    visited[n] = true;
+                    queue.add(n);
+                }
+
+                if(openNodes.contains(n+"")) return n+"";
+            }
+        }
+        String next ="";
+        for (Iterator<String> iter = closedNodes.iterator(); iter.hasNext(); ) {
+            next = iter.next();
+            if(failList.contains(next)) continue;
+            return next;
+        }
+        return next;
+    }
+    public class CollectAllPlanBody extends BeliefGoalPlanBody {
+        int time;
+        public CollectAllPlanBody(){
+            super();
+            time=0;
+        }
+        @Override
+        public void execute() {
+            switch (state){
+                case WAIT:
+                    time=0;
+                    if (currentNode!=null && currentNode.equals(goal))
+                        stateREADY();
+                    break;
+                case READY:
+                    time=0;
+                    if(!resourceNodes.isEmpty()){
+                        if (goal != "-1") break;
+                        String next = resourceNodes.poll();
+                        resourceNodes.add(next);
+                        goal = next;
+                        goCollect = true;
+                        requestRunning(next);
+                    }else if(openNodes.size()>0){
+                        if(goal!="-1")break;
+                        String next=openNodes.get(0);
+                        if(currentNode!=null) next = BFS(Integer.parseInt(currentNode));
+                        goal=next;
+                        requestRunning(next);
+                    }else if(openNodes.isEmpty()){
+                        state=STATE.FINISH;
+                        System.out.println("FINISH");
+
+                        getBeliefBase().updateBelief(I_KNOW_ALL_MAP, true);
+                        // setEndState(Plan.EndState.SUCCESSFUL);
+                    }
+
+                    break;
+                case FAIL:
+                    time=0;
+                    if(goal!="-1")break;
+                    if(currentNode==null)break;
+                    stateREADY();
+                    break;
+                case RUNNING:
+                    if(time++>900000000)
+                        stateFAIL(goal);
+                    break;
+                case COLLECT:
+                    if(time++>900)
+                        stateFAIL(goal);
+                    break;
+            }
+        }
+
+        public void requestRunning(String node){
+            ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+            msg.setProtocol(BDI_MESSAGE_PROTOCOL);
+            msg.setSender(myAgent.getAID());
+            msg.addReceiver(agentAID);
+            msg.setContent(node);
+            send(msg);
+            System.out.println(myAgent.getLocalName()+" send request "+ node);
+        }
+    }
+    public class ReciveInformPlanBody extends BeliefGoalPlanBody{
+        @Override
+        protected void execute() {
+            MessageTemplate msgTemplate = MessageTemplate.and(
+                    MessageTemplate.MatchProtocol(BDI_MESSAGE_PROTOCOL),
+                    MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+            ACLMessage refuseMenssage = receive(msgTemplate);
             if (refuseMenssage != null) {
                 if (refuseMenssage.getContent() != null) {
                     String content = refuseMenssage.getContent();
                     System.out.println(myAgent.getLocalName()+" Receiver inform:\n"+content);
-                    historial.add(myAgent.getLocalName()+" Receiver inform:\n"+content);
-
                     processInfo(content);
                 }
             }
         }
-
         public void processInfo(String content){
-            System.out.println(content);
             String [] inform = content.split("\n");
             Boolean nearWell=false;
-            List<Integer> nearList=new ArrayList<>();
+            List<Integer> nearList = new ArrayList<>();
             if(inform.length>0) currentNode="";
             for(String nodeInf: inform){
                 String[] c = nodeInf.split(" ");
                 String node = c[0];
                 if(currentNode==""){
+                    Map aux = new HashMap();
+
                     currentNode=node;
                     openNodes.remove(node);
                     closedNodes.add(node);
@@ -279,17 +513,30 @@ public class Agent_BDI extends SingleCapabilityAgent {
                         String[] info = e.split(":");
                         String name=info[0];
                         String quantity="0";
-
                         if(i++>0){
                             if(info.length>1) quantity=info[1];
-                            Map<String,String> recursoNodo;
-                            if(!recursos.containsKey(name)) recursoNodo=new HashMap<>();
-                            else recursoNodo = recursos.get(name);
-                            recursoNodo.put(node,quantity);
-                            recursos.put(name,recursoNodo);
+                            aux.put(name,quantity);
                         }
                         if(name.equals("WIND"))nearWell=true;
                     }
+
+                    if(tresureType.equals("Gold")){
+                        if(aux.containsKey("Gold")){
+                            resourceNodes.add((node));
+                        }else if(resourceNodes.contains(node)) resourceNodes.remove(node);
+                    }else if(tresureType.equals("Diamond")){
+                        if(aux.containsKey("Diamond")){
+                            resourceNodes.add((node));
+                        }else if(resourceNodes.contains(node)) resourceNodes.remove(node);
+                    }else{
+                        if(resourceNodes.contains(node)) {
+                            if (!aux.containsKey("Gold") && !aux.containsKey("Diamond"))
+                                resourceNodes.remove(node);
+                        }else resourceNodes.add(node);
+                    }
+
+
+                    recursos.put(node,aux);
                 }else{
                     nearList.add(Integer.parseInt(node));
                     if (!closedNodes.contains(node) && !openNodes.contains(node)) openNodes.add(node);
@@ -302,150 +549,21 @@ public class Agent_BDI extends SingleCapabilityAgent {
                             closedNodes.remove(node);
                         }
                     }
-
                 }
                 adjList.put(Integer.parseInt(currentNode),nearList);
             }
         }
     }
 
-    public class ExploreMapPlanBody extends BeliefGoalPlanBody {
-        int time;
-        public ExploreMapPlanBody(){
-            super();
-            time=0;
-        }
-        @Override
-        public void execute() {
-            switch (state){
-                case WAIT:
-                    if (currentNode.equals(goal)) {
-                        state = STATE.READY;
-                        goal="-1";
-                    }
-                    break;
-                case READY:
-                    if(openNodes.size()>0){
-                        if(goal!="-1")break;
-                        String next=openNodes.get(0);
-                        if(!currentNode.equals("")) next = BFS(Integer.parseInt(currentNode));
-                        goal=next;
-                        request(next);
-                    }else if(openNodes.isEmpty()){
-                        state=STATE.FINISH;
-                        System.out.println("FINISH");
-                        historial.add("FINISH");
+    private void stateREADY(){
+        state=STATE.READY;
+        goal="-1";
+    }
 
-                        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-                        msg.setProtocol("BDI");
-                        msg.setSender(myAgent.getAID());
-                        msg.addReceiver(agentAID);
-                        msg.setContent("FINISH");
-                        send(msg);
-
-                        printResult();
-
-                        getBeliefBase().updateBelief(I_KNOW_ALL_MAP, true);
-                        // setEndState(Plan.EndState.SUCCESSFUL);
-                    }
-                    break;
-                case FAIL:
-                    if(goal!="-1")break;
-                    String next = BFS(Integer.parseInt(currentNode));
-                    goal=next;
-                    request(next);
-
-                    break;
-                case RUNNING:
-                    if(time++<100000){
-                        goal="-1";
-                        state=STATE.FAIL;
-                    };
-                    break;
-
-            }
-        }
-
-        public void request(String node){
-            ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-            msg.setProtocol("BDI");
-            msg.setSender(myAgent.getAID());
-            msg.addReceiver(agentAID);
-            msg.setContent(node);
-            send(msg);
-            System.out.println(myAgent.getLocalName()+" send request "+ node);
-            historial.add(myAgent.getLocalName()+" send request "+ node);
-        }
-
-        public void printResult(){
-            System.out.println("Result");
-            for(String recursoName: recursos.keySet()){
-                System.out.println(recursoName);
-                String text="";
-                Map<String,String> recurso=recursos.get(recursoName);
-                for(String node:recurso.keySet())
-                    text+=" Nodo "+node+":"+recurso.get(node);
-                System.out.println(text);
-            }
-        }
-
-        private String BFS(int s) {
-            // Mark all the vertices as not visited(By default
-            // set as false)
-            boolean visited[] = new boolean[1000];
-
-            // Create a queue for BFS
-            LinkedList<Integer> queue = new LinkedList<Integer>();
-
-            // Mark the current node as visited and enqueue it
-            visited[s] = true;
-            queue.add(s);
-
-            while (queue.size() != 0) {
-
-                // Dequeue a vertex from queue and print it
-                s = queue.poll();
-                System.out.print(s + " ");
-
-                // Get all adjacent vertices of the dequeued
-                // vertex s If a adjacent has not been visited,
-                // then mark it visited and enqueue it
-                List<Integer> adj =adjList.get(s);
-                if(adj==null)
-                    continue;
-                Iterator<Integer> i = adj.listIterator();
-                while (i.hasNext()) {
-                    int n = i.next();
-
-                    //contains no funciona :c
-                    Boolean contain=false;
-                    for(String f: failList){
-                        if(f.equals(Integer.toString(n))){
-                            contain = true;
-                            break;
-                        }
-                    }
-                    if(contain)
-                        continue;
-
-                    if (!visited[n]) {
-                        visited[n] = true;
-                        queue.add(n);
-                    }
-
-                    if(openNodes.contains(n+""))
-                        return n+"";
-                }
-            }
-            String next ="";
-            for (Iterator<String> iter = closedNodes.iterator(); iter.hasNext(); ) {
-                next = iter.next();
-                if(failList.contains(next))
-                    continue;
-                return next;
-            }
-            return next;
-        }
+    private void stateFAIL(String content){
+        state=STATE.FAIL;
+        goal="-1";
+        failList.add(content);
     }
 
     private void enableGoalMonitoring() {
@@ -520,6 +638,4 @@ public class Agent_BDI extends SingleCapabilityAgent {
             }
         });
     }
-
-
 }

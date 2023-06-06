@@ -7,7 +7,10 @@ import eu.su.mas.dedaleEtu.mas.agents.dummies.*;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.BDIAgent;
 import eu.su.mas.dedaleEtu.mas.agents.my.Agent_BDI;
+import eu.su.mas.dedaleEtu.mas.agents.my.Agent_Final;
 import eu.su.mas.dedaleEtu.mas.agents.my.Agent_P3;
+import eu.su.mas.dedaleEtu.mas.agents.my.Agent_Recolector;
+import eu.su.mas.dedaleEtu.mas.agents.my.Agent_Recolector_BDI;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
@@ -201,9 +204,10 @@ public class Principal {
         // The platform will not work unless all agents defined in the entities file are bound by name
         // to agents in this list.
         AgentController[] agentsToAdd = new AgentController[]{
-                newAgent("Agent_P3_1", new String[] {}, Agent_P3.class),
-                newAgent("Agent_P3_2", new String[] {}, Agent_P3.class),
-                newAgent("Agent_P3_3", new String[] {}, Agent_P3.class),
+                newAgent("Agent_E", new String[] {}, Agent_Final.class),
+                newAgent("Agent_R_G", new String[] {}, Agent_Final.class),
+                newAgent("Agent_R_D", new String[] {}, Agent_Final.class),
+                //newGolem("Golem1"),
                 /*
                 newDummyMovingAgent("ImHere"),
                 newGolem("Golem1"),
@@ -228,13 +232,13 @@ public class Principal {
         try {
             AgentController nonDedaleAgent =
                     containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_AGENTS).createNewAgent(
-                            "BDI_Agent_P3_1", Agent_BDI.class.getName(), new Object[] {});
+                            "BDI_Agent_E", Agent_BDI.class.getName(), new Object[] {});
             AgentController nonDedaleAgent2 =
                     containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_AGENTS).createNewAgent(
-                            "BDI_Agent_P3_2", Agent_BDI.class.getName(), new Object[] {});
+                            "BDI_Agent_R_G", Agent_BDI.class.getName(), new Object[] {});
             AgentController nonDedaleAgent3 =
                     containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_AGENTS).createNewAgent(
-                            "BDI_Agent_P3_3", Agent_BDI.class.getName(), new Object[] {});
+                            "BDI_Agent_R_D", Agent_BDI.class.getName(), new Object[] {});
             agentList.add(nonDedaleAgent);
             agentList.add(nonDedaleAgent2);
             agentList.add(nonDedaleAgent3);
