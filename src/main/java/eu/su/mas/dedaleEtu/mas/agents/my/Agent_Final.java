@@ -8,7 +8,6 @@ import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
@@ -41,8 +40,6 @@ public class Agent_Final extends AbstractDedaleAgent {
 
     public Map<String,String> agents; //other agents, position
     private Boolean goingPos;
-
-    private MapaModel mapModel;
 
     protected void setup() {
         super.setup();

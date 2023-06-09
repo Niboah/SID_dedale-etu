@@ -53,6 +53,7 @@ public class BDIAgent10 extends SingleCapabilityAgent {
     private Set<String> failList;
     private Boolean goCollect = false;
     private String tresureType;
+    private Boolean iAmFull = false;
 
     public BDIAgent10(){
 
@@ -62,7 +63,6 @@ public class BDIAgent10 extends SingleCapabilityAgent {
         adjList = new HashMap<>();
         failList=new HashSet<>();
         resourceNodes = new LinkedList<>();
-
         goal="-1";
         state = STATE.SLEEPING;
 
@@ -294,8 +294,12 @@ public class BDIAgent10 extends SingleCapabilityAgent {
                                     state= STATE.COLLECT;
                                 else state = STATE.WAIT;
                                 failList.clear();
-                            }else if(content.contains("TAKE"))
+                            }else if(content.contains("TAKE")){
+                                String [] info = content.split(" ");
+                                if(info[1].equals("0") && info[2].equals("0")) iAmFull = true;
                                 stateREADY();
+                            }
+
 
                             break;
                         case TANKER:
@@ -445,7 +449,7 @@ public class BDIAgent10 extends SingleCapabilityAgent {
                     break;
                 case READY:
                     time=0;
-                    if(!resourceNodes.isEmpty()){
+                    if(!resourceNodes.isEmpty() && !iAmFull){
                         if (goal != "-1") break;
                         String next = resourceNodes.poll();
                         resourceNodes.add(next);
@@ -460,13 +464,10 @@ public class BDIAgent10 extends SingleCapabilityAgent {
                         goal=next;
                         requestRunning(next);
                     }else if(openNodes.isEmpty()){
-                        state=STATE.FINISH;
-                        System.out.println("FINISH");
-
-                        getBeliefBase().updateBelief(I_KNOW_ALL_MAP, true);
-                        // setEndState(Plan.EndState.SUCCESSFUL);
+                        if(goal!="-1")break;
+                        closedNodes.clear();
+                        openNodes.add(currentNode);
                     }
-
                     break;
                 case FAIL:
                     time=0;
@@ -580,6 +581,10 @@ public class BDIAgent10 extends SingleCapabilityAgent {
             }
         }
         public void processInfo(String content){
+            if(content.equals("Empty")){
+                iAmFull = false;
+                return;
+            }
             String [] inform = content.split("\n");
             Boolean nearWell=false;
             List<Integer> nearList = new ArrayList<>();
@@ -589,7 +594,6 @@ public class BDIAgent10 extends SingleCapabilityAgent {
                 String node = c[0];
                 if(currentNode==""){
                     Map aux = new HashMap();
-
                     currentNode=node;
                     openNodes.remove(node);
                     closedNodes.add(node);

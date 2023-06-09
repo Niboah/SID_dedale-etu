@@ -300,9 +300,11 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
         public void emptyMyResource(SituatedAgent10 agent) {
             if (agent.type.equals("AgentCollect")) {
                 for (String tankerName : tankers) {
-                    agent.emptyMyBackPack(tankerName);
+                    Boolean success = agent.emptyMyBackPack(tankerName);
+                    if(success){
+                        sendObserve("Empty");
+                    }
                 }
-
             }
         }
 
@@ -400,8 +402,6 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
             return finished || fail;
         }
     }
-
-
     public class TakeResourceBehaviour extends Behaviour{
         private Boolean finished = false;
         private ACLMessage requestMenssage;
@@ -420,7 +420,9 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
             //Object test = ((AbstractDedaleAgent) this.myAgent).observe();
             try{
                 String remainResource = String.valueOf(((AbstractDedaleAgent) this.myAgent).observe().get(0).getRight().get(0).getLeft());
-                if(l.get(0).getRight() == 0 || remainResource != "Gold" || remainResource != "Diamond") finished = true;
+                if((remainResource == "Diamond" && l.get(1).getRight() == 0) || (remainResource == "Gold" && l.get(0).getRight() == 0) || remainResource != "Gold" || remainResource != "Diamond") {
+                    finished = true;
+                }
             }catch (IndexOutOfBoundsException e){
                 System.out.println(e);
                 finished=true;
@@ -432,7 +434,9 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
             msg.setProtocol(BDI_MESSAGE_PROTOCOL);
             msg.setSender(myAgent.getAID());
             msg.addReceiver(agentBDIAID);
-            msg.setContent("TAKE "+((AbstractDedaleAgent) this.myAgent).getBackPackFreeSpace());
+            if (((AbstractDedaleAgent) this.myAgent).getBackPackFreeSpace().get(0).getRight() == 0);
+
+            msg.setContent("TAKE "+((AbstractDedaleAgent) this.myAgent).getBackPackFreeSpace().get(0).getRight() + " " + ((AbstractDedaleAgent) this.myAgent).getBackPackFreeSpace().get(1).getRight());
             send(msg);
         }
         @Override
@@ -441,8 +445,6 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
             return finished;
         }
     }
-
-
     public class ShareInfoBehaviour extends CyclicBehaviour {
 
         public ShareInfoBehaviour(Agent agent) {
