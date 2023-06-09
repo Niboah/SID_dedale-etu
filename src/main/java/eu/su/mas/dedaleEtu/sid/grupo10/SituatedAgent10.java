@@ -301,7 +301,7 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
             }
 
             lastPos=myPosition;
-            //emptyMyResource(agent);
+            emptyMyResource(agent);
             agent.moveTo(new gsLocation(nextNode));
 
         }

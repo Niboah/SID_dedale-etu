@@ -200,12 +200,12 @@ public class Principal {
         // The platform will not work unless all agents defined in the entities file are bound by name
         // to agents in this list.
         AgentController[] agentsToAdd = new AgentController[]{
-                newAgent("Agent_E", new String[] {}, SituatedAgent10.class),
-                newAgent("Agent_E2", new String[] {}, SituatedAgent10.class),
-                newAgent("Agent_R_D", new String[] {}, SituatedAgent10.class),
+                //newAgent("Agent_E", new String[] {}, SituatedAgent10.class),
+                //newAgent("Agent_E2", new String[] {}, SituatedAgent10.class),
+                //newAgent("Agent_R_D", new String[] {}, SituatedAgent10.class),
                 newAgent("Agent_R_G", new String[] {}, SituatedAgent10.class),
                 newAgent("Agent_T", new String[] {}, SituatedAgent10.class),
-                newGolem("Golem1"),
+                //newGolem("Golem1"),
                 /*
                 newDummyMovingAgent("ImHere"),
                 newGolem("Golem1"),

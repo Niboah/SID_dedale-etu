@@ -37,7 +37,7 @@
     "agentName": "Agent_R_G",
     "communicationRange": 1,
     "initialLocation": "free",
-    "backPackCapacityGold": 1000,
+    "backPackCapacityGold": 10,
     "backPackCapacityDiamond":0,
     "detectionRadius": 0,
     "strengthExpertise": 2,
