@@ -23,6 +23,7 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 
 public class SituatedAgent10 extends AbstractDedaleAgent {
@@ -34,6 +35,7 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
     private String name;
     public String type;
     private MapRepresentation map;
+    private Map<String,Couple<Long,String>> recursos;
     private AID agentBDIAID;
     private List<String> openNodes; //Nodes known but no visited
     private Set<String> closedNodes; //Visited node
@@ -54,6 +56,7 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
         closedNodes = new HashSet<>();
         well = new HashSet<>();
         tankers=new ArrayList<>();
+        recursos = new HashMap<>();
         regist(name,type);
 
         List lb = new ArrayList<>();
@@ -218,6 +221,11 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
                         send(refuse);
                         System.out.println(name+ " refuse NOT VALID");
                     }
+                    try{
+                        List<String> path =  map.getShortestPath(((SituatedAgent10)myAgent).getCurrentPosition().toString(),content);
+                    }catch (Exception e){
+                        System.out.println(e);
+                    }
                     List<String> path =  map.getShortestPath(((SituatedAgent10)myAgent).getCurrentPosition().toString(),content);
                     for(String node:path){
                         if(agents.values().contains(node))path=null;
@@ -267,6 +275,7 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
             SituatedAgent10 agent = (SituatedAgent10) myAgent;
             String myPosition = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition().toString();
 
+            shareInfo();
             observe(agent, myPosition);
 
             if(myPosition.equals(dest)){
@@ -292,7 +301,7 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
             }
 
             lastPos=myPosition;
-            emptyMyResource(agent);
+            //emptyMyResource(agent);
             agent.moveTo(new gsLocation(nextNode));
 
         }
@@ -300,9 +309,11 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
         public void emptyMyResource(SituatedAgent10 agent) {
             if (agent.type.equals("AgentCollect")) {
                 for (String tankerName : tankers) {
-                    agent.emptyMyBackPack(tankerName);
+                    Boolean success = agent.emptyMyBackPack(tankerName);
+                    if(success){
+                        sendObserve("Empty");
+                    }
                 }
-
             }
         }
 
@@ -312,6 +323,7 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
             Boolean nearWell=false;
             for (Couple<Location, List<Couple<Observation, Integer>>> lob : lobs) {
                 String node = lob.getLeft().toString();
+
                 if(myPosition==node){
                     agent.openNodes.remove(node);
                     agent.closedNodes.add(node);
@@ -319,6 +331,9 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
                     for( Couple<Observation, Integer> l : lob.getRight()){
                         if(l.getLeft().toString().equals("WIND"))
                             nearWell=true;
+                        if(l.getLeft().toString().equals("Gold") ||l.getLeft().toString().equals("Diamont")){
+                            recursos.put(node,new Couple<>(System.currentTimeMillis(),l.getLeft().toString()));
+                        }
                     }
                 }else{
                     for( Couple<Observation, Integer> l : lob.getRight()){
@@ -359,13 +374,30 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
         }
 
         public void shareInfo(){
-            //sendMap();
+            sendMap();
+            sendRecursos();
         }
+        private void sendRecursos(){
+            ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+            msg.setProtocol("SHARE-RES");
+            msg.setSender(myAgent.getAID());
+            for (String agentName : agents.keySet()) {
+                if (agentName.equals(myAgent.getLocalName())) continue;
+                msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
+            }
+            String content="";
+            for(String node: recursos.keySet()){
+                Couple<Long,String> c =  recursos.get(node);
+                content += node+":"+c.getLeft()+":"+c.getRight()+";";
+            }
 
+            msg.setContent(content);
+            sendMessage(msg);
+        }
         private void sendMap() {
             ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
             msg.setProtocol("SHARE-TOPO");
-            msg.setSender(this.myAgent.getAID());
+            msg.setSender(myAgent.getAID());
             for (String agentName : agents.keySet()) {
                 if (agentName.equals(myAgent.getLocalName())) continue;
                 msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
@@ -380,18 +412,22 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
         }
         public void sendInformDone(){
             ACLMessage msg = this.requestMenssage.createReply(ACLMessage.CONFIRM);
+            msg =  new ACLMessage(ACLMessage.CONFIRM);
             msg.setProtocol(BDI_MESSAGE_PROTOCOL);
             msg.setSender(myAgent.getAID());
             msg.addReceiver(agentBDIAID);
             msg.setContent(dest);
+            System.out.println(getLocalName()+"Send inform done" +dest);
             send(msg);
         }
         public void sendFailure(String menssage){
             ACLMessage msg = this.requestMenssage.createReply(ACLMessage.FAILURE);
+            msg =  new ACLMessage(ACLMessage.FAILURE);
             msg.setProtocol(BDI_MESSAGE_PROTOCOL);
             msg.setSender(myAgent.getAID());
             msg.addReceiver(agentBDIAID);
             msg.setContent(menssage);
+            System.out.println(getLocalName() + " Send failuere "+menssage);
             send(msg);
         }
         @Override
@@ -420,7 +456,9 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
             //Object test = ((AbstractDedaleAgent) this.myAgent).observe();
             try{
                 String remainResource = String.valueOf(((AbstractDedaleAgent) this.myAgent).observe().get(0).getRight().get(0).getLeft());
-                if(l.get(0).getRight() == 0 || remainResource != "Gold" || remainResource != "Diamond") finished = true;
+                if((remainResource == "Diamond" && l.get(1).getRight() == 0) || (remainResource == "Gold" && l.get(0).getRight() == 0) || remainResource != "Gold" || remainResource != "Diamond") {
+                    finished = true;
+                }
             }catch (IndexOutOfBoundsException e){
                 System.out.println(e);
                 finished=true;
@@ -432,7 +470,7 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
             msg.setProtocol(BDI_MESSAGE_PROTOCOL);
             msg.setSender(myAgent.getAID());
             msg.addReceiver(agentBDIAID);
-            msg.setContent("TAKE "+((AbstractDedaleAgent) this.myAgent).getBackPackFreeSpace());
+            msg.setContent("TAKE "+((AbstractDedaleAgent) this.myAgent).getBackPackFreeSpace().get(0).getRight() + " " + ((AbstractDedaleAgent) this.myAgent).getBackPackFreeSpace().get(1).getRight());
             send(msg);
         }
         @Override
@@ -451,6 +489,7 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
 
         @Override
         public void action() {
+            // Recive Map
             SituatedAgent10 agent = (SituatedAgent10) myAgent;
             MessageTemplate msgTemplate = MessageTemplate.and(
                     MessageTemplate.MatchProtocol("SHARE-TOPO"),
@@ -466,36 +505,54 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
                     e.printStackTrace();
                 }
             }
+            // Recive Recursos
+            msgTemplate = MessageTemplate.and(
+                    MessageTemplate.MatchProtocol("SHARE-RES"),
+                    MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+            msgReceived = this.myAgent.receive(msgTemplate);
+            if (msgReceived != null) {
+                String content= msgReceived.getContent();
+                String [] l = content.split(";");
+                for(String ll : l){
+                    String[] lll = ll.split(":");
+                    if(lll.length==3){
+                        if(!recursos.containsKey(lll[0]))continue;
+                        Long a = recursos.get(lll[0]).getLeft();
+                        Long b = Long.valueOf(lll[1]);
+                        if(a<b) recursos.put(lll[0],new Couple<>(Long.valueOf(lll[1]),lll[2]));
+                    }
+                }
+                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                msg.setProtocol("BDI10R");
+                msg.setSender(myAgent.getAID());
+                msg.addReceiver(agentBDIAID);
+                msg.setContent(content);
+                send(msg);
+            }
+
         }
     }
     public class RecibeMenssageBehaviour extends CyclicBehaviour{
 
         @Override
         public void action() {
-
-            ACLMessage tankerMsgReceived = myAgent.receive(MessageTemplate.MatchProtocol(ReceiveTreasureTankerBehaviour.PROTOCOL_TANKER));
-            if (tankerMsgReceived != null) {
-                if (tankerMsgReceived.getContent() != null) {
-                    ACLMessage msg = tankerMsgReceived.createReply(ACLMessage.AGREE);
-                    msg.setContent("Ok");
-                    send(msg);
-                }
-            }
-
-
-
             MessageTemplate requestTemplate = MessageTemplate.and(
                     MessageTemplate.MatchProtocol(BDI_MESSAGE_PROTOCOL),
                     MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
             MessageTemplate shareMapTemplate = MessageTemplate.and(
                     MessageTemplate.MatchProtocol("SHARE-TOPO"),
                     MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+            MessageTemplate shareRecTemplate = MessageTemplate.and(
+                    MessageTemplate.MatchProtocol("SHARE-RES"),
+                    MessageTemplate.MatchPerformative(ACLMessage.INFORM));
             MessageTemplate agreeTemplate = MessageTemplate.and(
                     MessageTemplate.MatchProtocol(BDI_MESSAGE_PROTOCOL),
                     MessageTemplate.MatchPerformative(ACLMessage.AGREE));
+
             MessageTemplate msgTemplate = MessageTemplate.not(
-                    MessageTemplate.or(MessageTemplate.or(shareMapTemplate,MessageTemplate.MatchProtocol(ReceiveTreasureTankerBehaviour.PROTOCOL_TANKER)),
-                            MessageTemplate.or(requestTemplate,agreeTemplate)
+                    MessageTemplate.or(
+                        MessageTemplate.or(shareMapTemplate,shareRecTemplate),
+                        MessageTemplate.or(requestTemplate,agreeTemplate)
                     )
             );
             ACLMessage msgReceived = myAgent.receive(msgTemplate);

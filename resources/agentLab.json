@@ -2,7 +2,7 @@
   { 
     "agentType":"agentExplo",
     "agentName": "Agent_E",
-    "communicationRange": 3,
+    "communicationRange": 1,
     "initialLocation": "free",
     "backPackCapacityGold": -1,
     "backPackCapacityDiamond":-1, 
@@ -11,11 +11,33 @@
     "lockPickingExpertise":1
   },
   {
+    "agentType":"agentExplo",
+    "agentName": "Agent_E2",
+    "communicationRange": 1,
+    "initialLocation": "free",
+    "backPackCapacityGold": -1,
+    "backPackCapacityDiamond":-1,
+    "detectionRadius": 0,
+    "strengthExpertise": 1,
+    "lockPickingExpertise":1
+  },
+  {
     "agentType":"agentCollect",
     "agentName": "Agent_R_D",
-    "communicationRange": 3,
+    "communicationRange": 1,
     "initialLocation": "free",
-    "backPackCapacityGold": 20,
+    "backPackCapacityGold": 0,
+    "backPackCapacityDiamond":1000,
+    "detectionRadius": 0,
+    "strengthExpertise": 2,
+    "lockPickingExpertise":1
+  },
+  {
+    "agentType":"agentCollect",
+    "agentName": "Agent_R_G",
+    "communicationRange": 1,
+    "initialLocation": "free",
+    "backPackCapacityGold": 1000,
     "backPackCapacityDiamond":0,
     "detectionRadius": 0,
     "strengthExpertise": 2,
@@ -24,7 +46,7 @@
   {
     "agentType":"agentTanker",
     "agentName": "Agent_T",
-    "communicationRange": 3,
+    "communicationRange": 1,
     "initialLocation": "15",
     "backPackCapacityGold": 1000,
     "backPackCapacityDiamond":1000,
