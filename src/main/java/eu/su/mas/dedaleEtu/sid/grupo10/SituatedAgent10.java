@@ -13,6 +13,7 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.SearchConstraints;
@@ -63,6 +64,7 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
         lb.add(new InitBehaviour(this));
         lb.add(new RecibeMenssageBehaviour());
         lb.add(new ShareInfoBehaviour(this));
+        lb.add(new RefleshAgentsBehaviour(this,500));
         addBehaviour(new startMyBehaviours(this, lb));
     }
 
@@ -156,7 +158,6 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
             }
         }
     }
-
     public class ImReadyBehaviour extends Behaviour{
         public boolean finish=false;
         @Override
@@ -210,21 +211,15 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
                     MessageTemplate.MatchProtocol(BDI_MESSAGE_PROTOCOL),
                     MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
             ACLMessage requestMenssage = myAgent.receive(msgTemplate);
+
             if (requestMenssage != null) {
                 if (requestMenssage.getContent() != null) {
                     String content = requestMenssage.getContent();
-                    System.out.println(name+ " Receive "+content);
                     Boolean correct=true;//TODO
                     if(!correct){
                         ACLMessage refuse = requestMenssage.createReply(ACLMessage.REFUSE);
                         refuse.setContent("NOT VALID");
                         send(refuse);
-                        System.out.println(name+ " refuse NOT VALID");
-                    }
-                    try{
-                        List<String> path =  map.getShortestPath(((SituatedAgent10)myAgent).getCurrentPosition().toString(),content);
-                    }catch (Exception e){
-                        System.out.println(e);
                     }
                     List<String> path =  map.getShortestPath(((SituatedAgent10)myAgent).getCurrentPosition().toString(),content);
                     for(String node:path){
@@ -234,13 +229,11 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
                         ACLMessage reply = requestMenssage.createReply(ACLMessage.AGREE);
                         reply.setContent(content);
                         send(reply);
-                        System.out.println(name+ " agree "+content);
                         addBehaviour(new GoPosBehaviour(content,requestMenssage));
                     }else {
                         ACLMessage reply = requestMenssage.createReply(ACLMessage.REFUSE);
                         reply.setContent(content);
                         send(reply);
-                        System.out.println(name+" refuse CANT GO "+content);
                     }
                 }
             }
@@ -311,7 +304,7 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
                 for (String tankerName : tankers) {
                     Boolean success = agent.emptyMyBackPack(tankerName);
                     if(success){
-                        sendObserve("Empty");
+                        sendObserve("Empty"); //Recolector vuelve ha estar vacio
                     }
                 }
             }
@@ -331,7 +324,7 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
                     for( Couple<Observation, Integer> l : lob.getRight()){
                         if(l.getLeft().toString().equals("WIND"))
                             nearWell=true;
-                        if(l.getLeft().toString().equals("Gold") ||l.getLeft().toString().equals("Diamont")){
+                        if(l.getLeft().toString().equals("Gold") ||l.getLeft().toString().equals("Diamond")){
                             recursos.put(node,new Couple<>(System.currentTimeMillis(),l.getLeft().toString()));
                         }
                     }
@@ -412,22 +405,13 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
         }
         public void sendInformDone(){
             ACLMessage msg = this.requestMenssage.createReply(ACLMessage.CONFIRM);
-            msg =  new ACLMessage(ACLMessage.CONFIRM);
-            msg.setProtocol(BDI_MESSAGE_PROTOCOL);
-            msg.setSender(myAgent.getAID());
-            msg.addReceiver(agentBDIAID);
             msg.setContent(dest);
-            System.out.println(getLocalName()+"Send inform done" +dest);
+            System.out.println(getLocalName()+" send done("+requestMenssage.getConversationId()+") "+dest);
             send(msg);
         }
         public void sendFailure(String menssage){
             ACLMessage msg = this.requestMenssage.createReply(ACLMessage.FAILURE);
-            msg =  new ACLMessage(ACLMessage.FAILURE);
-            msg.setProtocol(BDI_MESSAGE_PROTOCOL);
-            msg.setSender(myAgent.getAID());
-            msg.addReceiver(agentBDIAID);
             msg.setContent(menssage);
-            System.out.println(getLocalName() + " Send failuere "+menssage);
             send(msg);
         }
         @Override
@@ -436,8 +420,6 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
             return finished || fail;
         }
     }
-
-
     public class TakeResourceBehaviour extends Behaviour{
         private Boolean finished = false;
         private ACLMessage requestMenssage;
@@ -467,9 +449,6 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
         public void sendInformDone(){
             ACLMessage msg;
             msg = requestMenssage.createReply(ACLMessage.CONFIRM);
-            msg.setProtocol(BDI_MESSAGE_PROTOCOL);
-            msg.setSender(myAgent.getAID());
-            msg.addReceiver(agentBDIAID);
             msg.setContent("TAKE "+((AbstractDedaleAgent) this.myAgent).getBackPackFreeSpace().get(0).getRight() + " " + ((AbstractDedaleAgent) this.myAgent).getBackPackFreeSpace().get(1).getRight());
             send(msg);
         }
@@ -479,8 +458,6 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
             return finished;
         }
     }
-
-
     public class ShareInfoBehaviour extends CyclicBehaviour {
 
         public ShareInfoBehaviour(Agent agent) {
@@ -500,9 +477,11 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
                     SerializableSimpleGraph<String, MapRepresentation.MapAttribute> sgreceived =
                             (SerializableSimpleGraph<String,MapRepresentation.MapAttribute>) msgReceived.getContentObject();
                     agent.map.mergeMap(sgreceived);
-                    //System.out.println(myAgent.getLocalName() + " - Map recived");
+                    sendMap(sgreceived);
                 } catch (UnreadableException e) {
                     e.printStackTrace();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             }
             // Recive Recursos
@@ -522,15 +501,29 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
                         if(a<b) recursos.put(lll[0],new Couple<>(Long.valueOf(lll[1]),lll[2]));
                     }
                 }
-                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-                msg.setProtocol("BDI10R");
-                msg.setSender(myAgent.getAID());
-                msg.addReceiver(agentBDIAID);
-                msg.setContent(content);
-                send(msg);
+                sendRec(content);
             }
 
         }
+
+        public void sendMap(SerializableSimpleGraph<String, MapRepresentation.MapAttribute> sgreceived) throws IOException {
+            ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+            msg.setProtocol("BDI10MAP");
+            msg.setSender(myAgent.getAID());
+            msg.addReceiver(agentBDIAID);
+            msg.setContentObject(sgreceived);
+            send(msg);
+        }
+
+        public void sendRec(String content){
+            ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+            msg.setProtocol("BDI10R");
+            msg.setSender(myAgent.getAID());
+            msg.addReceiver(agentBDIAID);
+            msg.setContent(content);
+            send(msg);
+        }
+
     }
     public class RecibeMenssageBehaviour extends CyclicBehaviour{
 
@@ -549,17 +542,42 @@ public class SituatedAgent10 extends AbstractDedaleAgent {
                     MessageTemplate.MatchProtocol(BDI_MESSAGE_PROTOCOL),
                     MessageTemplate.MatchPerformative(ACLMessage.AGREE));
 
+            MessageTemplate dropToTankertemplate =MessageTemplate.and(
+                            MessageTemplate.MatchProtocol(ReceiveTreasureTankerBehaviour.PROTOCOL_TANKER),
+                            MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
+
             MessageTemplate msgTemplate = MessageTemplate.not(
                     MessageTemplate.or(
-                        MessageTemplate.or(shareMapTemplate,shareRecTemplate),
-                        MessageTemplate.or(requestTemplate,agreeTemplate)
+                            dropToTankertemplate,
+                            MessageTemplate.or(
+                                MessageTemplate.or(shareMapTemplate,shareRecTemplate),
+                                MessageTemplate.or(requestTemplate,agreeTemplate)
+                            )
                     )
             );
             ACLMessage msgReceived = myAgent.receive(msgTemplate);
             if (msgReceived != null) {
                 if (msgReceived.getContent() != null) {
                     System.out.println("Recive trash "+msgReceived.getContent());
+                    try {
+                        System.out.println(msgReceived.getContentObject());
+                    } catch (UnreadableException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
+            }
+        }
+    }
+    public class RefleshAgentsBehaviour extends  TickerBehaviour{
+
+        public RefleshAgentsBehaviour(Agent a, long period) {
+            super(a, period);
+        }
+
+        @Override
+        protected void onTick() {
+            for(String a: agents.keySet()){
+                agents.put(a,"-1");
             }
         }
     }

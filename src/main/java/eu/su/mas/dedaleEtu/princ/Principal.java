@@ -200,11 +200,12 @@ public class Principal {
         // The platform will not work unless all agents defined in the entities file are bound by name
         // to agents in this list.
         AgentController[] agentsToAdd = new AgentController[]{
-                //newAgent("Agent_E", new String[] {}, SituatedAgent10.class),
-                //newAgent("Agent_E2", new String[] {}, SituatedAgent10.class),
-                //newAgent("Agent_R_D", new String[] {}, SituatedAgent10.class),
+                newAgent("Agent_E", new String[] {}, SituatedAgent10.class),
+                newAgent("Agent_E2", new String[] {}, SituatedAgent10.class),
+                newAgent("Agent_R_D", new String[] {}, SituatedAgent10.class),
                 newAgent("Agent_R_G", new String[] {}, SituatedAgent10.class),
                 newAgent("Agent_T", new String[] {}, SituatedAgent10.class),
+                //newAgent("Agent_T2", new String[] {}, SituatedAgent10.class),
                 //newGolem("Golem1"),
                 /*
                 newDummyMovingAgent("ImHere"),
@@ -243,11 +244,15 @@ public class Principal {
             AgentController nonDedaleAgent5 =
                     containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_AGENTS).createNewAgent(
                             "BDI_Agent_T", BDIAgent10.class.getName(), new Object[] {});
+            AgentController nonDedaleAgent6 =
+                    containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_AGENTS).createNewAgent(
+                            "BDI_Agent_T2", BDIAgent10.class.getName(), new Object[] {});
             agentList.add(nonDedaleAgent);
             agentList.add(nonDedaleAgent2);
             agentList.add(nonDedaleAgent3);
             agentList.add(nonDedaleAgent4);
             agentList.add(nonDedaleAgent5);
+            //agentList.add(nonDedaleAgent6);
         } catch (StaleProxyException e) {
             e.printStackTrace();
         }

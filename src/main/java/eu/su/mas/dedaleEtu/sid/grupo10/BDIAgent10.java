@@ -15,7 +15,10 @@ import bdi4jade.reasoning.DefaultBeliefRevisionStrategy;
 import bdi4jade.reasoning.DefaultDeliberationFunction;
 import bdi4jade.reasoning.DefaultOptionGenerationFunction;
 import bdi4jade.reasoning.DefaultPlanSelectionStrategy;
+import dataStructures.serializableGraph.SerializableNode;
+import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.domain.DFService;
@@ -24,7 +27,9 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.UnreadableException;
 
+import java.io.Serializable;
 import java.util.*;
 
 public class BDIAgent10 extends SingleCapabilityAgent {
@@ -45,15 +50,16 @@ public class BDIAgent10 extends SingleCapabilityAgent {
     private AGENT_TYPE agent_type;
     private List<String> openNodes; //Nodes known but no visited
     private Set<String> closedNodes; //Visited node
-    private Queue<String> resourceNodes;
-    private Map<String,Map<String,String>> recursos; // Nodo : (Recurso:Quatitat)
-    private Map<Integer,List<Integer>> adjList;
+    private Queue<String> resourceNodes; //Node with resource
+    private Map<String, Couple<Long,String>> recursos; // Nodo : (Recurso:Quatitat)
+    private Map<String,Set<String>> adjList;
     private String goal;
     private String currentNode;
     private Set<String> failList;
     private Boolean goCollect = false;
     private String tresureType;
     private Boolean iAmFull = false;
+    private int log;
 
     public BDIAgent10(){
 
@@ -66,6 +72,7 @@ public class BDIAgent10 extends SingleCapabilityAgent {
 
         goal="-1";
         state = STATE.SLEEPING;
+        log = 0;
 
         // Create initial beliefs
         Belief iAmRegistered = new TransientPredicate(I_AM_REGISTERED, false);
@@ -75,6 +82,8 @@ public class BDIAgent10 extends SingleCapabilityAgent {
         Belief iUpdateMyState = new TransientBelief(IN_FINISH_STATE, state);
         Belief iCollect = new TransientPredicate(I_COLLECT,false);
         Belief iStore =new TransientPredicate(I_STORE,false);
+
+
         // Add initial desires
         Goal registerGoal = new PredicateGoal(I_AM_REGISTERED, true);
         addGoal(registerGoal);
@@ -118,7 +127,7 @@ public class BDIAgent10 extends SingleCapabilityAgent {
 
         Plan updateStatePlan = new DefaultPlan(updateStateGoalTemplate, UpdateStatePlanBody.class);
 
-        Plan reciveInfoPlan = new DefaultPlan(getInfoGoalTemplate,ReciveInformPlanBody.class);
+        Plan reciveInfoPlan = new DefaultPlan(getInfoGoalTemplate, ReceiveInformPlanBody.class);
 
         // Init plan library
         getCapability().getPlanLibrary().addPlan(registerPlan);
@@ -239,12 +248,9 @@ public class BDIAgent10 extends SingleCapabilityAgent {
             }
             openNodes.add(content[0]);
 
-            //System.out.println(myAgent.getLocalName()+" Receive request "+agentAID.getLocalName()+" start in "+content[0]+" "+content[1]+" "+content[2]);
-
             ACLMessage reply = requestMenssage.createReply(ACLMessage.AGREE);
             reply.setContent(content[0]);
             send(reply);
-           // System.out.println(myAgent.getLocalName()+" "+content[0]);
 
             stateREADY();
         }
@@ -253,8 +259,8 @@ public class BDIAgent10 extends SingleCapabilityAgent {
             if (refuseMenssage != null) {
                 if (refuseMenssage.getContent() != null) {
                     String content = refuseMenssage.getContent();
-                   // System.out.println(myAgent.getLocalName()+" Receive agree "+content);
-                    state = STATE.RUNNING;
+                    System.out.println(getLocalName()+" RECEIVE AGREE"+"("+refuseMenssage.getConversationId()+") "+content);
+                    stateRUNNING();
                 }
             }
         }
@@ -263,8 +269,7 @@ public class BDIAgent10 extends SingleCapabilityAgent {
             if (refuseMenssage != null) {
                 if (refuseMenssage.getContent() != null) {
                     String content = refuseMenssage.getContent();
-                    System.out.println(myAgent.getLocalName()+" Receive refuse "+content);
-
+                    System.out.println(getLocalName()+" RECEIVE REFUSE"+"("+refuseMenssage.getConversationId()+") "+content);
                     stateFAIL(content);
                 }
             }
@@ -274,16 +279,18 @@ public class BDIAgent10 extends SingleCapabilityAgent {
             if (refuseMenssage != null) {
                 if (refuseMenssage.getContent() != null) {
                     String content = refuseMenssage.getContent();
-
-                    System.out.println(myAgent.getLocalName()+ " Receive inform_done "+content);
+                    System.out.println(getLocalName()+" RECEIVE DONE"+"("+refuseMenssage.getConversationId()+") "+content);
                     switch (agent_type){
                         case EXPLO:
+                        case TANKER:
+
                             if(content.equals(goal)){
                                 state=STATE.WAIT;
                                 failList.clear();
                                 if (currentNode!=null && currentNode.equals(goal))
                                     stateREADY();
                             }
+
                             break;
                         case COLLECT:
 
@@ -291,21 +298,12 @@ public class BDIAgent10 extends SingleCapabilityAgent {
                                 if(goCollect)
                                     state= STATE.COLLECT;
                                 else state = STATE.WAIT;
-
                             }else if(content.contains("TAKE")){
                                 String [] info = content.split(" ");
                                 if(info[1].equals("0") && info[2].equals("0")) iAmFull = true;
-                                stateREADY();
+                                //stateREADY();
                             }
 
-                            break;
-                        case TANKER:
-                            if(content.equals(goal)){
-                                state=STATE.WAIT;
-                                failList.clear();
-                                if (currentNode!=null && currentNode.equals(goal))
-                                    stateREADY();
-                            }
                             break;
                     }
 
@@ -317,11 +315,60 @@ public class BDIAgent10 extends SingleCapabilityAgent {
             if (refuseMenssage != null) {
                 if (refuseMenssage.getContent() != null) {
                     String content = refuseMenssage.getContent();
-                    System.out.println(myAgent.getLocalName()+" Receive failure "+content);
+                    System.out.println(getLocalName()+" RECEIVE FAILURE"+"("+refuseMenssage.getConversationId()+") "+content);
                     stateFAIL(content);
                 }
             }
         }
+    }
+    //Buscar nodo objetivo mas proximo
+    private String BFS(String s) {
+        boolean visited[] = new boolean[1000];
+
+        LinkedList<String> queue = new LinkedList<String>();
+
+        visited[Integer.parseInt(s)] = true;
+        queue.add(s);
+
+        while (queue.size() != 0) {
+
+            s = queue.poll();
+
+            Set<String> adj = adjList.get(s);
+            if(adj==null) continue;
+            Iterator<String> i = adj.iterator();
+            while (i.hasNext()) {
+                String n = i.next();
+
+                if(failList.contains(n+"")) continue;
+                if (!visited[Integer.parseInt(n)]) {
+                    visited[Integer.parseInt(n)] = true;
+                    queue.add(n);
+                }
+
+                if(openNodes.contains(n+"")) return n+"";
+            }
+        }
+        String next ="";
+        for (Iterator<String> iter = closedNodes.iterator(); iter.hasNext(); ) {
+            next = iter.next();
+            if(failList.contains(next)) continue;
+            return next;
+        }
+        return next;
+    }
+    private void request(Agent agent, String node){
+
+        ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+        msg.setProtocol(BDI_MESSAGE_PROTOCOL);
+        msg.setSender(agent.getAID());
+        msg.addReceiver(agentAID);
+        msg.setContent(node);
+        log++;
+        msg.setConversationId(log+"");
+        System.out.println(agent.getLocalName()+" SEND REQUEST"+"("+msg.getConversationId()+") "+node);
+        send(msg);
+
     }
     public class ExploreMapPlanBody extends BeliefGoalPlanBody {
         int time;
@@ -342,39 +389,24 @@ public class BDIAgent10 extends SingleCapabilityAgent {
                     if(openNodes.size()>0){
                         if(goal!="-1")break;
                         String next=openNodes.get(0);
-                        if(currentNode!=null) next = BFS(Integer.parseInt(currentNode));
+                        if(currentNode!=null) next = BFS(currentNode);
                         goal=next;
-                        request(next);
+                        request(myAgent,next);
                     }else if(openNodes.isEmpty()){
                         String aux = closedNodes.iterator().next();
                         closedNodes.clear();
                         openNodes.add(aux);
                         adjList.clear();
                         closedNodes.add(currentNode);
-                        /*
-                        if(!resourceNodes.isEmpty()){
-                            if (goal != "-1") break;
-                            String next = resourceNodes.poll();
-                            resourceNodes.add(next);
-                            goal = next;
-                            request(next);
-                        }else{
-                            state=STATE.FINISH;
-                            System.out.println("FINISH");
-
-                            getBeliefBase().updateBelief(I_KNOW_ALL_MAP, true);
-                            // setEndState(Plan.EndState.SUCCESSFUL);
-                        }
-                           */
                     }
                     break;
                 case FAIL:
                     time=0;
                     if(goal!="-1")break;
                     if(currentNode==null)break;
-                    String next = BFS(Integer.parseInt(currentNode));
+                    String next = BFS(currentNode);
                     goal=next;
-                    request(next);
+                    request(myAgent,next);
                     break;
                 case RUNNING:
                     if(time++>900000000)
@@ -382,58 +414,6 @@ public class BDIAgent10 extends SingleCapabilityAgent {
                     break;
             }
         }
-
-        public void request(String node){
-            ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-            msg.setProtocol(BDI_MESSAGE_PROTOCOL);
-            msg.setSender(myAgent.getAID());
-            msg.addReceiver(agentAID);
-            msg.setContent(node);
-            send(msg);
-            //System.out.println(myAgent.getLocalName()+" send request "+ node);
-        }
-
-
-    }
-    private String BFS(int s) {
-        // Mark all the vertices as not visited(By default
-        // set as false)
-        boolean visited[] = new boolean[1000];
-
-        LinkedList<Integer> queue = new LinkedList<Integer>();
-
-        visited[s] = true;
-        queue.add(s);
-
-        while (queue.size() != 0) {
-
-            s = queue.poll();
-
-            List<Integer> adj = adjList.get(s);
-            if(adj==null) continue;
-            Iterator<Integer> i = adj.listIterator();
-            while (i.hasNext()) {
-                int n = i.next();
-
-                if(failList.contains(n+""))
-                    continue;
-
-                if (!visited[n]) {
-                    visited[n] = true;
-                    queue.add(n);
-                }
-
-                if(openNodes.contains(n+"")) return n+"";
-            }
-        }
-        String next ="";
-        for (Iterator<String> iter = closedNodes.iterator(); iter.hasNext(); ) {
-            next = iter.next();
-            if(failList.contains(next))
-                continue;
-            return next;
-        }
-        return next;
     }
     public class CollectAllPlanBody extends BeliefGoalPlanBody {
         int time;
@@ -457,14 +437,13 @@ public class BDIAgent10 extends SingleCapabilityAgent {
                         resourceNodes.add(next);
                         goal = next;
                         goCollect = true;
-                        requestRunning(next);
-                    }
-                    else if(openNodes.size()>0){
+                        request(myAgent,next);
+                    }else if(openNodes.size()>0){
                         if(goal!="-1")break;
                         String next=openNodes.get(0);
-                        if(currentNode!=null) next = BFS(Integer.parseInt(currentNode));
+                        if(currentNode!=null) next = BFS(currentNode);
                         goal=next;
-                        requestRunning(next);
+                        request(myAgent,next);
                     }else if(openNodes.isEmpty()){
                         String aux = closedNodes.iterator().next();
                         closedNodes.clear();
@@ -477,27 +456,26 @@ public class BDIAgent10 extends SingleCapabilityAgent {
                     time=0;
                     if(goal!="-1")break;
                     if(currentNode==null)break;
-                    stateREADY();
+                    //stateREADY();
+                    String next = BFS(currentNode);
+                    goal=next;
+                    request(myAgent,next);
                     break;
                 case RUNNING:
-                    if(time++>900000000)
+                    if(time++>900000000){
+                        System.out.println(getLocalName()+" RUNNING TIME OUT "+goal);
                         stateFAIL(goal);
+                    }
+
                     break;
                 case COLLECT:
-                    if(time++>900)
+                    if(time++>900){
+                        System.out.println(getLocalName()+" COLLECT TIME OUT "+goal);
                         stateFAIL(goal);
+                    }
+
                     break;
             }
-        }
-
-        public void requestRunning(String node){
-            ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-            msg.setProtocol(BDI_MESSAGE_PROTOCOL);
-            msg.setSender(myAgent.getAID());
-            msg.addReceiver(agentAID);
-            msg.setContent(node);
-            send(msg);
-            System.out.println(myAgent.getLocalName()+" send request "+ node);
         }
     }
     public class StoreAllPlanBody extends BeliefGoalPlanBody {
@@ -508,6 +486,7 @@ public class BDIAgent10 extends SingleCapabilityAgent {
         }
         @Override
         public void execute() {
+
             switch(state){
                 case WAIT:
                     time=0;
@@ -515,32 +494,23 @@ public class BDIAgent10 extends SingleCapabilityAgent {
                         stateREADY();
                     break;
                 case READY:
+
                     time=0;
+
                     if(openNodes.size()>0){
                         if(goal!="-1")break;
                         String next=openNodes.get(0);
-                        if(currentNode!=null) next = BFS(Integer.parseInt(currentNode));
+                        if(currentNode!=null) next = BFS(currentNode);
                         goal=next;
 
-                        requestTanker(next);
-                    }
-                   /*else if(!resourceNodes.isEmpty()){
-                        if (goal != "-1") break;
-
-                        String next = resourceNodes.poll();
-                        System.out.println(resourceNodes);
-                        resourceNodes.add(next);
-                        goal = next;
-                        requestTanker(next);
-                    }
-
-                    */
-                    else if(openNodes.isEmpty()){
+                        request(myAgent,next);
+                    }else if(openNodes.isEmpty()){
                         String aux = closedNodes.iterator().next();
                         closedNodes.clear();
                         openNodes.add(aux);
                         adjList.clear();
                         closedNodes.add(currentNode);
+
                     }
                     break;
                 case RUNNING:
@@ -551,24 +521,43 @@ public class BDIAgent10 extends SingleCapabilityAgent {
                     time=0;
                     if(goal!="-1")break;
                     if(currentNode==null)break;
-                    stateREADY();
+                    //stateREADY();
+                    String next = BFS(currentNode);
+                    goal=next;
+                    request(myAgent,next);
                     break;
             }
-        }
-        public void requestTanker(String node){
-            ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-            msg.setProtocol(BDI_MESSAGE_PROTOCOL);
-            msg.setSender(myAgent.getAID());
-            msg.addReceiver(agentAID);
-            msg.setContent(node);
-            send(msg);
-            System.out.println(myAgent.getLocalName()+" send request "+ node);
+
+
         }
     }
-    public class ReciveInformPlanBody extends BeliefGoalPlanBody{
+    public class ReceiveInformPlanBody extends BeliefGoalPlanBody{
         @Override
         protected void execute() {
-            //recibeRecursos();
+            recibeRecursos();
+            receiveInform();
+            recieveMap();
+        }
+        public void recieveMap(){
+            MessageTemplate msgTemplate = MessageTemplate.and(
+                    MessageTemplate.MatchProtocol("BDI10MAP"),
+                    MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+            ACLMessage menssage = receive(msgTemplate);
+            if (menssage != null) {
+                if (menssage.getContent() != null) {
+                    try {
+                        SerializableSimpleGraph<String, MapRepresentation.MapAttribute> sgreceived =
+                                (SerializableSimpleGraph<String, MapRepresentation.MapAttribute>) menssage.getContentObject();
+                        //processMap(sgreceived);
+                    }catch (Exception e){
+                        System.out.println(e);
+                    }
+
+                }
+            }
+        }
+
+        public void receiveInform(){
             MessageTemplate msgTemplate = MessageTemplate.and(
                     MessageTemplate.MatchProtocol(BDI_MESSAGE_PROTOCOL),
                     MessageTemplate.MatchPerformative(ACLMessage.INFORM));
@@ -576,12 +565,10 @@ public class BDIAgent10 extends SingleCapabilityAgent {
             if (refuseMenssage != null) {
                 if (refuseMenssage.getContent() != null) {
                     String content = refuseMenssage.getContent();
-                   // System.out.println(myAgent.getLocalName()+" Receiver inform:\n"+content);
                     processInfo(content);
                 }
             }
         }
-
         public void recibeRecursos(){
             MessageTemplate msgTemplate = MessageTemplate.and(
                     MessageTemplate.MatchProtocol("BDI10R"),
@@ -595,40 +582,42 @@ public class BDIAgent10 extends SingleCapabilityAgent {
                         String[] lll = ll.split(":");
                         if(lll.length==3){
                             String node = lll[0];
+                            Long a = 0L;
+                            if(recursos.containsKey(node))  a = recursos.get(node).getLeft();
+
+                            Long b = Long.valueOf(lll[1]);
+                            if(a>=b) continue;
+
+                            recursos.put(lll[0],new Couple<>(Long.valueOf(lll[1]),lll[2]));
+
                             if(tresureType.equals("Gold")){
                                 if(lll[2].equals("Gold") && !resourceNodes.contains(node)){
                                     resourceNodes.add((node));
-                                }else if(resourceNodes.contains(node)) resourceNodes.remove(node);
+                                }else if(!lll[2].equals("Gold") && resourceNodes.contains(node)) resourceNodes.remove(node);
                             }else if(tresureType.equals("Diamond")){
                                 if(lll[2].equals("Diamond") && !resourceNodes.contains(node)){
                                     resourceNodes.add((node));
-                                }else if(resourceNodes.contains(node)) resourceNodes.remove(node);
+                                }else if(!lll[2].equals("Diamond") && resourceNodes.contains(node)) resourceNodes.remove(node);
                             }else{
                                 if(resourceNodes.contains(node)) {
                                     if (!lll[2].equals("Gold") && !lll[2].equals("Diamond"))
                                         resourceNodes.remove(node);
-                                }else if (lll[2].equals("Gold") || lll[2].equals("Diamond"))
-                                    resourceNodes.add(node);
+                                }else if (lll[2].equals("Gold") || lll[2].equals("Diamond")) resourceNodes.add(node);
                             }
-                            /*
-                            if(!recursos2.containsKey(lll[0]))continue;
-                            Long a = recursos2.get(lll[0]).getLeft();
-                            Long b = Long.valueOf(lll[1]);
-                            if(a<b) recursos2.put(lll[0],new Couple<>(Long.valueOf(lll[1]),lll[2]));
-                             */
                         }
                     }
+                    System.out.println(resourceNodes);
                 }
             }
         }
         public void processInfo(String content){
-            if(content.equals("Empty")){
+            if(content.equals("Empty")){//Recolector vuelve ha estar vacio
                 iAmFull = false;
                 return;
             }
             String [] inform = content.split("\n");
             Boolean nearWell=false;
-            List<Integer> nearList = new ArrayList<>();
+            Set<String> nearList = new HashSet<>();
             if(inform.length>0) currentNode="";
             for(String nodeInf: inform){
                 String[] c = nodeInf.split(" ");
@@ -665,9 +654,8 @@ public class BDIAgent10 extends SingleCapabilityAgent {
                                 resourceNodes.remove(node);
                         }else if (aux.containsKey("Gold") || aux.containsKey("Diamond")) resourceNodes.add(node);
                     }
-                    recursos.put(node,aux);
                 }else{
-                    nearList.add(Integer.parseInt(node));
+                    nearList.add(node);
                     if (!closedNodes.contains(node) && !openNodes.contains(node)) openNodes.add(node);
 
                     for(String e:c){
@@ -679,9 +667,28 @@ public class BDIAgent10 extends SingleCapabilityAgent {
                         }
                     }
                 }
-                adjList.put(Integer.parseInt(currentNode),nearList);
+                adjList.put(currentNode,nearList);
             }
         }
+
+        public void processMap(SerializableSimpleGraph<String, MapRepresentation.MapAttribute> sgreceived){
+            if(agent_type.equals(AGENT_TYPE.EXPLO))return;
+            for(SerializableNode<String, MapRepresentation.MapAttribute> node :sgreceived.getAllNodes()){
+                String n = node.getNodeId();
+                if(node.getNodeContent().equals(MapRepresentation.MapAttribute.closed)){
+                    if(openNodes.contains(n)) openNodes.remove(n);
+                    closedNodes.add(n);
+                    adjList.put(n,sgreceived.getEdges(n));
+                }
+                if(node.getNodeContent().equals(MapRepresentation.MapAttribute.open)){
+                    if(closedNodes.contains(n)) continue;
+                    if(openNodes.contains(n)) continue;
+                    openNodes.add(n);
+                    adjList.put(n,sgreceived.getEdges(n));
+                }
+            }
+        }
+
     }
 
     private void stateREADY(){
@@ -689,14 +696,20 @@ public class BDIAgent10 extends SingleCapabilityAgent {
         goal="-1";
         goCollect=false;
         failList.clear();
-    }
 
+        System.out.println(getLocalName()+" READY\n");
+    }
     private void stateFAIL(String content){
         state=STATE.FAIL;
         failList.add(content);
         failList.add(goal);
+        goCollect=false;
         goal="-1";
-
+        System.out.println(getLocalName()+" FAIL "+content);
+    }
+    private void stateRUNNING(){
+        state=STATE.RUNNING;
+        System.out.println(getLocalName()+" RUNNING");
     }
 
     private void enableGoalMonitoring() {

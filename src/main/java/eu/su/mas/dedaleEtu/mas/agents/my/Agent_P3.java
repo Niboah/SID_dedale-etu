@@ -46,8 +46,9 @@ public class Agent_P3 extends AbstractDedaleAgent {
 
         List lb = new ArrayList<>();
         lb.add(new InitBehaviour(this));
-        lb.add(new ShareInfoBehaviour(this));
+        lb.add(new ShareMyPosBehaviour(this));
         lb.add(new RefleshAgents(this,1000));
+        lb.add(new ShareInfoBehaviour());
         addBehaviour(new startMyBehaviours(this, lb));
     }
 
@@ -290,10 +291,12 @@ public class Agent_P3 extends AbstractDedaleAgent {
                             nearWell=true;
                     }
                 }else{
-                    if(nearWell)
-                        for( Couple<Observation, Integer> l : lob.getRight()){
-                            if(l.getLeft().toString().equals("WIND"))well.add(node);
-                        }
+                    for( Couple<Observation, Integer> l : lob.getRight()){
+                        if(nearWell && l.getLeft().toString().equals("WIND"))well.add(node);
+                        if(l.getLeft().toString().equals("Stench")) agents.put("Stench",node);
+                    }
+
+
                     if(well.contains(node))
                         continue;
                     if (!agent.closedNodes.contains(node)) {
@@ -348,9 +351,9 @@ public class Agent_P3 extends AbstractDedaleAgent {
             return finished || fail;
         }
     }
-    public class ShareInfoBehaviour extends CyclicBehaviour {
+    public class ShareMyPosBehaviour extends CyclicBehaviour {
 
-        public ShareInfoBehaviour(Agent agent) {
+        public ShareMyPosBehaviour(Agent agent) {
             super(agent);
         }
 
@@ -394,6 +397,15 @@ public class Agent_P3 extends AbstractDedaleAgent {
 
 
     }
+
+    public class ShareInfoBehaviour extends CyclicBehaviour{
+
+        @Override
+        public void action() {
+
+        }
+    }
+
     public class RefleshAgents extends TickerBehaviour{
 
         public RefleshAgents(Agent a, long period) {

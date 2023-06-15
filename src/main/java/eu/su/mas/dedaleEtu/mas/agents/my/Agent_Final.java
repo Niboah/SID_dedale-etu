@@ -51,24 +51,22 @@ public class Agent_Final extends AbstractDedaleAgent {
         openNodes = new ArrayList<>();
         closedNodes = new HashSet<>();
         well = new HashSet<>();
-        regist(name);
+        regist(name,type);
 
         List lb = new ArrayList<>();
         lb.add(new InitBehaviour(this));
         lb.add(new RecibeMenssageBehaviour());
         lb.add(new ShareInfoBehaviour(this));
         addBehaviour(new startMyBehaviours(this, lb));
-
-
     }
 
-    public void regist(String name){
+    public void regist(String name,String type){
         try {
             DFAgentDescription dfd = new DFAgentDescription();
             dfd.setName(getAID());
             ServiceDescription sd = new ServiceDescription();
-            sd.setName(name);
-            sd.setType(SITUATED_DF_TYPE);
+            sd.setName(getLocalName());
+            sd.setType(type);
             dfd.addServices(sd);
             DFService.register(this,dfd);
             System.out.println(name+" regist");
@@ -429,10 +427,6 @@ public class Agent_Final extends AbstractDedaleAgent {
         @Override
         public void action() {
             Agent_Final agent = (Agent_Final) myAgent;
-            receiveMap(agent);
-        }
-
-        private void receiveMap(Agent_Final agent) {
             MessageTemplate msgTemplate = MessageTemplate.and(
                     MessageTemplate.MatchProtocol("SHARE-TOPO"),
                     MessageTemplate.MatchPerformative(ACLMessage.INFORM));
@@ -456,6 +450,7 @@ public class Agent_Final extends AbstractDedaleAgent {
             MessageTemplate requestTemplate = MessageTemplate.and(
                     MessageTemplate.MatchProtocol(BDI_MESSAGE_PROTOCOL),
                     MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
+
             MessageTemplate shareMapTemplate = MessageTemplate.and(
                     MessageTemplate.MatchProtocol("SHARE-TOPO"),
                     MessageTemplate.MatchPerformative(ACLMessage.INFORM));

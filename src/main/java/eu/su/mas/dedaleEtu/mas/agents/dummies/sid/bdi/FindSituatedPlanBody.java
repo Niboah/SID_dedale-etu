@@ -3,7 +3,6 @@ package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi;
 import bdi4jade.belief.Belief;
 import bdi4jade.core.SingleCapabilityAgent;
 import bdi4jade.plan.Plan;
-import bdi4jade.plan.planbody.AbstractPlanBody;
 import bdi4jade.plan.planbody.BeliefGoalPlanBody;
 import jade.core.AID;
 import jade.domain.DFService;
