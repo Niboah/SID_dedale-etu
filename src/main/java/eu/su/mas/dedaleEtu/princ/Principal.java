@@ -203,10 +203,12 @@ public class Principal {
                 newAgent("Agent_E", new String[] {}, SituatedAgent10.class),
                 newAgent("Agent_E2", new String[] {}, SituatedAgent10.class),
                 newAgent("Agent_R_D", new String[] {}, SituatedAgent10.class),
+                newAgent("Agent_R_D2", new String[] {}, SituatedAgent10.class),
                 newAgent("Agent_R_G", new String[] {}, SituatedAgent10.class),
+                newAgent("Agent_R_G2", new String[] {}, SituatedAgent10.class),
                 newAgent("Agent_T", new String[] {}, SituatedAgent10.class),
-                //newAgent("Agent_T2", new String[] {}, SituatedAgent10.class),
-                //newGolem("Golem1"),
+                newAgent("Agent_T2", new String[] {}, SituatedAgent10.class),
+                newGolem("Golem1"),
                 /*
                 newDummyMovingAgent("ImHere"),
                 newGolem("Golem1"),
@@ -238,9 +240,15 @@ public class Principal {
             AgentController nonDedaleAgent3 =
                     containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_AGENTS).createNewAgent(
                             "BDI_Agent_R_D", BDIAgent10.class.getName(), new Object[] {});
+            AgentController nonDedaleAgent8 =
+                    containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_AGENTS).createNewAgent(
+                            "BDI_Agent_R_D2", BDIAgent10.class.getName(), new Object[] {});
             AgentController nonDedaleAgent4 =
                     containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_AGENTS).createNewAgent(
                             "BDI_Agent_R_G", BDIAgent10.class.getName(), new Object[] {});
+            AgentController nonDedaleAgent7 =
+                    containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_AGENTS).createNewAgent(
+                            "BDI_Agent_R_G2", BDIAgent10.class.getName(), new Object[] {});
             AgentController nonDedaleAgent5 =
                     containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_AGENTS).createNewAgent(
                             "BDI_Agent_T", BDIAgent10.class.getName(), new Object[] {});
@@ -252,7 +260,9 @@ public class Principal {
             agentList.add(nonDedaleAgent3);
             agentList.add(nonDedaleAgent4);
             agentList.add(nonDedaleAgent5);
-            //agentList.add(nonDedaleAgent6);
+            agentList.add(nonDedaleAgent6);
+            agentList.add(nonDedaleAgent7);
+            agentList.add(nonDedaleAgent8);
         } catch (StaleProxyException e) {
             e.printStackTrace();
         }

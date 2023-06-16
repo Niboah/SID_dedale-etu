@@ -34,6 +34,17 @@
   },
   {
     "agentType":"agentCollect",
+    "agentName": "Agent_R_D2",
+    "communicationRange": 1,
+    "initialLocation": "free",
+    "backPackCapacityGold": 0,
+    "backPackCapacityDiamond":5,
+    "detectionRadius": 0,
+    "strengthExpertise": 1,
+    "lockPickingExpertise":1
+  },
+  {
+    "agentType":"agentCollect",
     "agentName": "Agent_R_G",
     "communicationRange": 1,
     "initialLocation": "free",
