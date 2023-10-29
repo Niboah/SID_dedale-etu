@@ -1,18 +1,12 @@
-# Welcome to the Dedale project.
+# SID_Dedale
+Prácticas de sistema inteligente distribuido (SID) usando la plataforma del proyecto de dedale.
+https://dedale.gitlab.io/
+![alt text](https://github.com/Niboah/SID_dedale-etu/blob/main/img.png)
+# Instrucciones
+Añadir librerías de la carpeta lib.
 
-This project is developed at Sorbonne University, Paris, France. It is used in both research and teaching activities. Considering the later, during the FoSyMa course (from the French “Fondement des Systèmes Multi-Agents”) as a practical application of Multi-Agents Systems (MAS). 
-It allows Master's students to obtain a first-hand experience of some of the nice (and sometimes difficult) characteristics that comes with agents and distributed systems :
- - distribution and asynchronism (system and communication),
- - autonomy, decision and coordination in uncertain and partially observable environments
+'main' -&gt; src\main\java\eu\su\mas\dedaleEtu\princ\Principal.java
 
-**Your goal here is "simple", you have to conceive and implement the behaviours of a team of heterogeneous agents that have to explore an unknown environment and coordinate themselves to reach a given goal** :
- - To collect the maximum amount of treasure in a given time frame.
- - To hunt the Golem(s)
- - To patrol an area
- - To pick and deliver packages
- 
-while facing, or not, other teams.
+Gestionar los agentes en la plataforma en la función 'createAgents()' de 'Principal.java'
 
-This game is initally inspired by the famous "Hunt the Wumpus"  of [Gregory Yob](https://en.wikipedia.org/wiki/Gregory_Yob).
 
-For more details, see Dedale's website : https://dedale.gitlab.io/
